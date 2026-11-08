@@ -1,0 +1,14 @@
+# Python 3.10+  
+numpy>=1.26,<2.3
+pandas>=2.1,<2.4
+scikit-learn>=1.4,<1.8
+matplotlib>=3.8,<3.11
+
+# Notebook
+jupyter>=1.0
+ipykernel>=6.25
+
+# Bonus 
+networkx>=3.2          
+imageio>=2.34            
+imageio-ffmpeg>=0.5      
