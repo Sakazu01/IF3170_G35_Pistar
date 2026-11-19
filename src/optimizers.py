@@ -27,9 +27,13 @@ class GradientDescent:
 
     def step(self, parameters, gradient):
         parameters, gradient = self._inputs(parameters, gradient)
+        with np.errstate(over="raise", invalid="raise"):
+            updated = parameters - self.learning_rate * gradient
+        if not np.isfinite(updated).all():
+            raise FloatingPointError("Gradient descent produced non-finite parameters")
         self.n_updates_ += 1
         self.step_size = self.learning_rate
-        return parameters - self.step_size * gradient
+        return updated
 
 
 class Adam(GradientDescent):
@@ -48,17 +52,25 @@ class Adam(GradientDescent):
     def step(self, parameters, gradient):
         parameters, gradient = self._inputs(parameters, gradient)
         if self.moment_ is None:
-            self.moment_ = np.zeros_like(gradient)
-            self.variance_ = np.zeros_like(gradient)
+            previous_moment = np.zeros_like(gradient)
+            previous_variance = np.zeros_like(gradient)
         elif self.moment_.shape != gradient.shape:
             raise ValueError("Call reset before optimizing parameters with a different shape")
-        self.n_updates_ += 1
-        self.moment_ = self.beta1 * self.moment_ + (1.0 - self.beta1) * gradient
-        self.variance_ = self.beta2 * self.variance_ + (1.0 - self.beta2) * gradient**2
-        corrected_moment = self.moment_ / (1.0 - self.beta1**self.n_updates_)
-        corrected_variance = self.variance_ / (1.0 - self.beta2**self.n_updates_)
-        self.step_size = self.learning_rate / (np.sqrt(corrected_variance) + self.epsilon)
-        return parameters - self.step_size * corrected_moment
+        else:
+            previous_moment, previous_variance = self.moment_, self.variance_
+        update = self.n_updates_ + 1
+        with np.errstate(over="raise", invalid="raise", divide="raise"):
+            moment = self.beta1 * previous_moment + (1.0 - self.beta1) * gradient
+            variance = self.beta2 * previous_variance + (1.0 - self.beta2) * gradient**2
+            corrected_moment = moment / (1.0 - self.beta1**update)
+            corrected_variance = variance / (1.0 - self.beta2**update)
+            step_size = self.learning_rate / (np.sqrt(corrected_variance) + self.epsilon)
+            updated = parameters - step_size * corrected_moment
+        if not all(np.isfinite(value).all() for value in (moment, variance, step_size, updated)):
+            raise FloatingPointError("Adam produced non-finite state; scale features or gradients")
+        self.n_updates_ = update
+        self.moment_, self.variance_, self.step_size = moment, variance, step_size
+        return updated
 
 
 def make_optimizer(name, learning_rate=0.1, beta1=0.9, beta2=0.999, epsilon=1e-8):

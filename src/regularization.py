@@ -25,8 +25,9 @@ class Regularizer:
 
     def value(self, weights):
         weights = np.asarray(weights, dtype=float)
-        flat = weights.ravel()
-        return float(self.l1 * np.abs(weights).sum() + 0.5 * self.l2 * np.dot(flat, flat))
+        l1_value = self.l1 * np.abs(weights).sum() if self.l1 else 0.0
+        l2_value = 0.5 * self.l2 * np.dot(weights.ravel(), weights.ravel()) if self.l2 else 0.0
+        return float(l1_value + l2_value)
 
     def smooth_gradient(self, weights):
         return self.l2 * np.asarray(weights, dtype=float)

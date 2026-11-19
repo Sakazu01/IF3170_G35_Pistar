@@ -12,7 +12,7 @@ from src.validation import decision_threshold, finite_scalar, positive_int, rand
 
 __all__ = [
     "confusion", "roc_auc", "pr_auc", "expected_cost", "evaluate",
-    "best_threshold", "cross_validate", "benchmark",
+    "threshold_curve", "best_threshold", "cross_validate", "benchmark",
 ]
 
 
@@ -91,12 +91,8 @@ def evaluate(y, proba, threshold=0.5):
     }
 
 
-def best_threshold(y, proba, metric="f1"):
+def threshold_curve(y, proba):
     y, proba = _scores(y, proba, probabilities=True)
-    if metric in ("roc_auc", "pr_auc"):
-        return 0.5
-    if metric not in ("accuracy", "precision", "recall", "f1", "cost", "expected_cost"):
-        raise ValueError("metric must be accuracy, precision, recall, f1, roc_auc, pr_auc, or cost/expected_cost")
     thresholds = np.unique(np.r_[0.0, proba, 0.5, np.nextafter(proba.max(), np.inf)])
     order = np.argsort(proba, kind="stable")
     positions = np.searchsorted(proba[order], thresholds, side="left")
@@ -106,18 +102,30 @@ def best_threshold(y, proba, metric="f1"):
     tn = cumulative_negative[positions]
     tp = cumulative_positive[-1] - fn
     fp = cumulative_negative[-1] - tn
-    scores = {
+    return pd.DataFrame({
+        "threshold": thresholds,
+        "tn": tn, "fp": fp, "fn": fn, "tp": tp,
         "accuracy": (tp + tn) / len(y),
         "precision": tp / np.maximum(tp + fp, 1),
         "recall": tp / np.maximum(tp + fn, 1),
         "f1": 2 * tp / np.maximum(2 * tp + fp + fn, 1),
-    }
+        "cost": COST_FP * fp + COST_FN * fn,
+        "expected_cost": (COST_FP * fp + COST_FN * fn) / len(y),
+    })
+
+
+def best_threshold(y, proba, metric="f1"):
+    if metric in ("roc_auc", "pr_auc"):
+        _scores(y, proba, probabilities=True)
+        return 0.5
+    if metric not in ("accuracy", "precision", "recall", "f1", "cost", "expected_cost"):
+        raise ValueError("metric must be accuracy, precision, recall, f1, roc_auc, pr_auc, or cost/expected_cost")
+    curve = threshold_curve(y, proba)
     if metric in ("cost", "expected_cost"):
-        costs = COST_FP * fp + COST_FN * fn
-        index = int(np.argmin(costs))
+        index = int(np.argmin(curve[metric].to_numpy()))
     else:
-        index = int(np.argmax(scores[metric]))
-    return float(thresholds[index])
+        index = int(np.argmax(curve[metric].to_numpy()))
+    return float(curve.threshold.iloc[index])
 
 
 def _stratified_kfold(y, k, seed):
