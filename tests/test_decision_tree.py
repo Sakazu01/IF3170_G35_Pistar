@@ -69,12 +69,12 @@ def test_missing_values_and_unseen_categories():
     assert root.gain == pytest.approx(6 / 7)
 
     expected = 0.5 * 1.0 + 0.5 * (0.5 / 3.5)
-    np.testing.assert_allclose(model.predict_proba([[np.nan], [7.0]]), [expected, expected])
+    np.testing.assert_allclose(model.predict_proba([[np.nan], [7.0]])[:, 1], [expected, expected])
 
     X = X_TENNIS.copy()
     X[[0, 5, 9], OUTLOOK] = np.nan
     X[3, HUMIDITY] = np.nan
-    proba = DecisionTree(categorical_idx=[0, 1, 2, 3]).fit(X, Y_TENNIS).predict_proba(X)
+    proba = DecisionTree(categorical_idx=[0, 1, 2, 3]).fit(X, Y_TENNIS).predict_proba(X)[:, 1]
     assert proba.shape == (14,) and np.all((proba >= 0) & (proba <= 1))
 
 
