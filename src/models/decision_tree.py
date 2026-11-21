@@ -1,10 +1,7 @@
 from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Optional
-
 import numpy as np
-
 from src.base import BaseClassifier
 from src.validation import sample_weights
 
@@ -55,6 +52,7 @@ class DecisionTree(BaseClassifier):
             raise ValueError("categorical_idx contains an index outside X's columns")
         weights = sample_weights(sample_weight, len(X))
         self.n_features_in_ = X.shape[1]
+        self.classes_ = np.array([0, 1])
         self.is_categorical_ = np.isin(np.arange(X.shape[1]), self.categorical_idx)
         self.tree_ = self._grow(X, y.astype(int), weights, depth=0)
         return self
@@ -69,7 +67,8 @@ class DecisionTree(BaseClassifier):
             raise ValueError(f"X must have shape (n_samples, {self.n_features_in_})")
         probabilities = np.zeros(len(X))
         self._accumulate(self.tree_, X, np.arange(len(X)), np.ones(len(X)), probabilities)
-        return np.clip(probabilities, 0.0, 1.0)
+        probabilities = np.clip(probabilities, 0.0, 1.0)
+        return np.column_stack([1.0 - probabilities, probabilities])
 
     def _accumulate(self, node, X, rows, row_weights, probabilities):
         if not len(rows):

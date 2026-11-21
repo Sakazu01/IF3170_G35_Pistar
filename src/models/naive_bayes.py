@@ -1,7 +1,6 @@
 import numpy as np
 from src.base import BaseClassifier
 
-
 class NaiveBayes(BaseClassifier):
     def __init__(
         self,
@@ -98,7 +97,7 @@ class NaiveBayes(BaseClassifier):
         shifted_scores = log_scores - log_scores.max(axis=1, keepdims=True)
         probabilities = np.exp(shifted_scores)
         probabilities /= probabilities.sum(axis=1, keepdims=True)
-        return probabilities[:, 1]
+        return probabilities
 
     def _joint_log_likelihood(self, X) -> np.ndarray:
         # Mulai dari log prior, lalu tambahkan kontribusi fitur yang tersedia.
