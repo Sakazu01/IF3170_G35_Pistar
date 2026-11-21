@@ -7,10 +7,12 @@ import numpy as np
 
 
 class BaseClassifier:
-    threshold = 0.5
-
     def predict(self, X):
-        return (np.asarray(self.predict_proba(X)) >= self.threshold).astype(int)
+        proba = np.asarray(self.predict_proba(X))
+        return (proba[:, 1] >= 0.5).astype(int)
+
+    def score(self, X, y):
+        return float(np.mean(self.predict(X) == np.asarray(y)))
 
     def get_params(self):
         return {
@@ -18,6 +20,13 @@ class BaseClassifier:
             for key, value in self.__dict__.items()
             if not key.endswith("_") and not key.startswith("_")
         }
+
+    def set_params(self, **params):
+        unknown = set(params) - set(self.get_params())
+        if unknown:
+            raise ValueError(f"Unknown parameter(s): {sorted(unknown)}")
+        self.__init__(**{**self.get_params(), **params})
+        return self
 
     def save(self, path):
         path = Path(path)
