@@ -8,10 +8,10 @@ from src.evaluation import best_threshold, confusion, evaluate, threshold_curve
 
 
 def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):
-    validation_proba = model.predict_proba(X_validation)
+    validation_proba = model.predict_proba(X_validation)[:, 1]
     threshold = best_threshold(y_validation, validation_proba, metric="cost")
     curve = threshold_curve(y_validation, validation_proba)
-    test_proba = model.predict_proba(X_test)
+    test_proba = model.predict_proba(X_test)[:, 1]
     bayes_threshold = COST_FP / (COST_FP + COST_FN)
     policies = (("baseline", 0.5), ("bayes", bayes_threshold), ("validation_tuned", threshold))
     rows = []

@@ -87,7 +87,7 @@ def tune_ccp_alpha(model, X_val, y_val, metric="roc_auc", max_points=40):
     picked = np.linspace(0, len(path) - 1, min(max_points, len(path))).round().astype(int)
     rows = []
     for alpha, n_leaves in (path[path_idx] for path_idx in np.unique(picked)):
-        probabilities = _apply(model, steps, alpha).predict_proba(X_val)
+        probabilities = _apply(model, steps, alpha).predict_proba(X_val)[:, 1]
         rows.append({"ccp_alpha": alpha, "n_leaves": n_leaves, **evaluate(y_val, probabilities)})
     table = pd.DataFrame(rows)
     score = (-table[metric] if metric == "expected_cost" else table[metric]).round(12)

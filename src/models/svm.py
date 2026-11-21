@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from time import perf_counter
-
 import numpy as np
 
 from src.base import BaseClassifier
@@ -9,7 +7,6 @@ from src.kernels import check_kernel_params, kernel_matrix, resolve_gamma
 from src.numerics import sigmoid
 from src.validation import (
     binary_data,
-    decision_threshold,
     finite_scalar,
     positive_int,
     prediction_data,
@@ -55,7 +52,6 @@ class SVMScratch(BaseClassifier):
     _positive_int = staticmethod(positive_int)
     _weights = staticmethod(sample_weights)
     _xy = staticmethod(binary_data)
-    _decision_threshold = staticmethod(decision_threshold)
 
     def __init__(
         self,
@@ -67,7 +63,6 @@ class SVMScratch(BaseClassifier):
         tol=1e-3,
         max_iter=100,
         random_state=42,
-        threshold=0.5,
     ):
         self.C = self._finite_scalar(C, "C", positive=True)
         self.degree, self.coef0 = check_kernel_params(kernel, degree, coef0)
@@ -80,7 +75,6 @@ class SVMScratch(BaseClassifier):
         self.tol = self._finite_scalar(tol, "tol", positive=True)
         self.max_iter = self._positive_int(max_iter, "max_iter")
         self.random_state = random_seed(random_state)
-        self.threshold = self._decision_threshold(threshold)
 
     def _smo(self, K, s, c):
         n, tol = len(s), self.tol
@@ -187,11 +181,8 @@ class SVMScratch(BaseClassifier):
         return K @ self.dual_coef_ + self.intercept_
 
     def predict_proba(self, X):
-        return sigmoid(-(self.platt_a_ * self.decision_function(X) + self.platt_b_))
-
-    def predict(self, X, threshold=None):
-        threshold = self._decision_threshold(self.threshold if threshold is None else threshold)
-        return (self.predict_proba(X) >= threshold).astype(int)
+        positive = sigmoid(-(self.platt_a_ * self.decision_function(X) + self.platt_b_))
+        return np.column_stack([1.0 - positive, positive])
 
 
 class MulticlassSVM(BaseClassifier):

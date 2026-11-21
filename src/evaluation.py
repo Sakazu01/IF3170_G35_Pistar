@@ -181,7 +181,7 @@ def _fit_and_evaluate(model, X_tr, y_tr, X_va, y_va, sample_weight=None):
     predicted = perf_counter()
     proba = _positive_probabilities(model, probabilities)
     return {
-        **evaluate(y_va, proba, getattr(model, "threshold", 0.5)),
+        **evaluate(y_va, proba),
         "fit_time": fitted - started,
         "predict_time": predicted - fitted,
     }

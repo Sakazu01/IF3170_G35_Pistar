@@ -44,7 +44,7 @@ def test_prune_extremes_and_original_untouched(data):
     np.testing.assert_allclose(prune(model, 0.0).predict_proba(X), before)
     stump = prune(model, path.ccp_alpha.max())
     assert stump.tree_.feature is None
-    np.testing.assert_allclose(stump.predict_proba(X), y.mean())
+    np.testing.assert_allclose(stump.predict_proba(X)[:, 1], y.mean())
     np.testing.assert_allclose(model.predict_proba(X), before)
 
 
@@ -53,7 +53,7 @@ def test_tune_picks_best_validation_score(data):
     model = DecisionTree().fit(X[:200], y[:200])
     best, table = tune_ccp_alpha(model, X[200:], y[200:])
     assert leaves(best.tree_) <= leaves(model.tree_)
-    assert best.predict_proba(X[200:]).shape == (100,)
+    assert best.predict_proba(X[200:]).shape == (100, 2)
     assert table.roc_auc.max() >= table.roc_auc.iloc[0]
 
 

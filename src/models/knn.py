@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 import numpy as np
-
 from src.base import BaseClassifier
 
 
@@ -57,6 +55,7 @@ class KNN(BaseClassifier):
         self.y_ = y.copy()
         self.sample_weight_ = sample_weight.copy()
         self.n_features_in_ = X.shape[1]
+        self.classes_ = np.array([0, 1])
         return self
 
     def predict_proba(self, X):
@@ -93,7 +92,7 @@ class KNN(BaseClassifier):
                 out=np.zeros(stop - start, dtype=float),
                 where=total_weight > 0,
             )
-        return probabilities
+        return np.column_stack([1.0 - probabilities, probabilities])
 
     def _distances(self, query):
         if self.metric == "euclidean":

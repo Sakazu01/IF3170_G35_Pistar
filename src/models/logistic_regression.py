@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from time import perf_counter
-
 import numpy as np
 
 from src.base import BaseClassifier
@@ -10,7 +8,6 @@ from src.optimizers import make_optimizer
 from src.regularization import Regularizer, soft_threshold
 from src.validation import (
     binary_data,
-    decision_threshold,
     finite_scalar,
     positive_int,
     prediction_data,
@@ -29,7 +26,6 @@ class LogisticRegressionScratch(BaseClassifier):
     _weights = staticmethod(sample_weights)
     _xy = staticmethod(binary_data)
     _soft_threshold = staticmethod(soft_threshold)
-    _decision_threshold = staticmethod(decision_threshold)
 
     def __init__(
         self,
@@ -50,7 +46,6 @@ class LogisticRegressionScratch(BaseClassifier):
         beta1=0.9,
         beta2=0.999,
         epsilon=1e-8,
-        threshold=0.5,
         store_parameters=False,
     ):
         self.learning_rate = self._finite_scalar(learning_rate, "learning_rate", positive=True)
@@ -77,7 +72,6 @@ class LogisticRegressionScratch(BaseClassifier):
         self.beta1 = self._unit_interval(beta1, "beta1", exclude_one=True)
         self.beta2 = self._unit_interval(beta2, "beta2", exclude_one=True)
         self.epsilon = self._finite_scalar(epsilon, "epsilon", positive=True)
-        self.threshold = self._decision_threshold(threshold)
         self.store_parameters = bool(store_parameters)
 
     def _make_regularizer(self):
@@ -230,10 +224,7 @@ class LogisticRegressionScratch(BaseClassifier):
         return z
 
     def predict_proba(self, X):
-        return self.sigmoid(self.decision_function(X))
-
-    def predict(self, X, threshold=None):
-        threshold = self._decision_threshold(self.threshold if threshold is None else threshold)
-        return (self.predict_proba(X) >= threshold).astype(int)
+        positive = self.sigmoid(self.decision_function(X))
+        return np.column_stack([1.0 - positive, positive])
 
 LogisticRegression = LogisticRegressionScratch
