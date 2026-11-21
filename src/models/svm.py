@@ -1,18 +1,113 @@
-from __future__ import annotations
 from time import perf_counter
 import numpy as np
 
 from src.base import BaseClassifier
-from src.kernels import check_kernel_params, kernel_matrix, resolve_gamma
-from src.numerics import sigmoid
-from src.validation import (
-    binary_data,
-    finite_scalar,
-    positive_int,
-    prediction_data,
-    random_seed,
-    sample_weights,
-)
+
+
+def finite_scalar(value, name, positive=False):
+    value = float(value)
+    if not np.isfinite(value) or (value <= 0 if positive else value < 0):
+        raise ValueError(f"{name} must be finite and {'positive' if positive else 'nonnegative'}")
+    return value
+
+
+def positive_int(value, name):
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return int(value)
+
+
+def random_seed(value):
+    if value is not None and (
+        isinstance(value, (bool, np.bool_))
+        or not isinstance(value, (int, np.integer))
+        or value < 0
+    ):
+        raise ValueError("random_state must be a nonnegative integer or None")
+    return None if value is None else int(value)
+
+
+def sample_weights(sample_weight, n_samples):
+    weights = np.ones(n_samples) if sample_weight is None else np.asarray(sample_weight, dtype=float)
+    if weights.shape != (n_samples,) or not np.isfinite(weights).all() or np.any(weights < 0):
+        raise ValueError("sample_weight must be finite, nonnegative, shape (n_samples,)")
+    if not np.isfinite(weights.sum()) or weights.sum() <= 0:
+        raise ValueError("sample_weight must have a finite positive sum")
+    return weights
+
+
+def binary_data(X, y):
+    X = np.asarray(X, dtype=float)
+    y = np.asarray(y)
+    if X.ndim != 2 or X.shape[0] == 0 or X.shape[1] == 0:
+        raise ValueError("X must be a nonempty 2-D matrix with at least one feature")
+    if y.shape != (len(X),) or not np.isin(y, [0, 1]).all():
+        raise ValueError("y must be a binary 0/1 vector with one label per row")
+    if not np.isfinite(X).all():
+        raise ValueError("X must contain finite features")
+    return X, y.astype(float, copy=False)
+
+
+def prediction_data(X, n_features):
+    X = np.asarray(X, dtype=float)
+    if X.ndim == 1:
+        X = X.reshape(1, -1)
+    if X.ndim != 2 or X.shape[1] != n_features or not np.isfinite(X).all():
+        raise ValueError(f"X must be finite with shape (n_samples, {n_features})")
+    return X
+
+
+def sigmoid(z):
+    z = np.asarray(z, dtype=float)
+    result = np.empty_like(z)
+    positive = z >= 0
+    result[positive] = 1.0 / (1.0 + np.exp(-z[positive]))
+    exp_z = np.exp(z[~positive])
+    result[~positive] = exp_z / (1.0 + exp_z)
+    return result
+
+
+KERNELS = ("linear", "poly", "rbf")
+
+
+def resolve_gamma(gamma, X):
+    if isinstance(gamma, str):
+        if gamma == "scale":
+            variance = float(np.var(X))
+            return 1.0 / (X.shape[1] * variance) if variance > 0 else 1.0
+        if gamma == "auto":
+            return 1.0 / X.shape[1]
+        raise ValueError("gamma must be 'scale', 'auto', or a positive float")
+    return finite_scalar(gamma, "gamma", positive=True)
+
+
+def linear_kernel(A, B):
+    return A @ B.T
+
+
+def polynomial_kernel(A, B, degree=3, gamma=1.0, coef0=1.0):
+    return (gamma * (A @ B.T) + coef0) ** degree
+
+
+def gaussian_kernel(A, B, gamma=1.0):
+    squared = (A**2).sum(axis=1)[:, None] + (B**2).sum(axis=1)[None, :] - 2.0 * A @ B.T
+    return np.exp(-gamma * np.maximum(squared, 0.0))
+
+
+def kernel_matrix(name, A, B, degree=3, gamma=1.0, coef0=1.0):
+    if name == "linear":
+        return linear_kernel(A, B)
+    if name == "poly":
+        return polynomial_kernel(A, B, degree, gamma, coef0)
+    if name == "rbf":
+        return gaussian_kernel(A, B, gamma)
+    raise ValueError(f"kernel must be one of {KERNELS}")
+
+
+def check_kernel_params(kernel, degree, coef0):
+    if kernel not in KERNELS:
+        raise ValueError(f"kernel must be one of {KERNELS}")
+    return positive_int(degree, "degree"), finite_scalar(coef0, "coef0")
 
 
 def platt_scaling(scores, y, max_iter=100, tol=1e-9):

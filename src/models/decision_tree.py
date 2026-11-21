@@ -1,9 +1,16 @@
-from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 import numpy as np
 from src.base import BaseClassifier
-from src.validation import sample_weights
+
+
+def sample_weights(sample_weight, n_samples):
+    weights = np.ones(n_samples) if sample_weight is None else np.asarray(sample_weight, dtype=float)
+    if weights.shape != (n_samples,) or not np.isfinite(weights).all() or np.any(weights < 0):
+        raise ValueError("sample_weight must be finite, nonnegative, shape (n_samples,)")
+    if not np.isfinite(weights.sum()) or weights.sum() <= 0:
+        raise ValueError("sample_weight must have a finite positive sum")
+    return weights
 
 
 @dataclass

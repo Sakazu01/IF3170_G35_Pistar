@@ -1,19 +1,48 @@
-from __future__ import annotations
-
-from collections.abc import Mapping
+import copy
 from time import perf_counter
 
 import numpy as np
 import pandas as pd
 
-from src.config import COST_FN, COST_FP, SEED, TARGET
-from src.preprocessing import Preprocessor, balanced_weights, split_xy
-from src.validation import decision_threshold, finite_scalar, positive_int, random_seed
 
 __all__ = [
-    "confusion", "roc_auc", "pr_auc", "expected_cost", "evaluate",
+    "COST_FP", "COST_FN", "confusion", "roc_auc", "pr_auc", "expected_cost", "evaluate",
     "threshold_curve", "best_threshold", "cross_validate", "benchmark",
 ]
+
+# Biaya dari soal: salah menandai batal (FP) dua kali lebih mahal dari FN.
+COST_FP = 2.0
+COST_FN = 1.0
+
+
+def finite_scalar(value, name, positive=False):
+    value = float(value)
+    if not np.isfinite(value) or (value <= 0 if positive else value < 0):
+        raise ValueError(f"{name} must be finite and {'positive' if positive else 'nonnegative'}")
+    return value
+
+
+def positive_int(value, name):
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return int(value)
+
+
+def random_seed(value):
+    if value is not None and (
+        isinstance(value, (bool, np.bool_))
+        or not isinstance(value, (int, np.integer))
+        or value < 0
+    ):
+        raise ValueError("random_state must be a nonnegative integer or None")
+    return None if value is None else int(value)
+
+
+def decision_threshold(value):
+    value = float(value)
+    if not np.isfinite(value) or not 0 <= value <= np.nextafter(1.0, np.inf):
+        raise ValueError("threshold must be in [0,1] or nextafter(1,+inf) for all-negative")
+    return value
 
 
 def _labels(values, name="y"):
@@ -187,32 +216,37 @@ def _fit_and_evaluate(model, X_tr, y_tr, X_va, y_va, sample_weight=None):
     }
 
 
-def cross_validate(make_model, df, mode, k=5, seed=SEED, pre_kw=None, balance=False):
+def _balanced_weights(y):
+    counts = np.bincount(y, minlength=2)
+    return len(y) / (2 * counts[y])
+
+
+def cross_validate(make_model, X, y, prep=None, k=5, seed=42, balance=False):
+    # make_model: fungsi tanpa argumen yang mengembalikan model baru.
+    # prep: transformer bergaya sklearn, di-fit ulang di tiap fold supaya tidak bocor.
     if not callable(make_model):
-        raise TypeError("make_model must accept a fitted preprocessor and return a new model")
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be a pandas DataFrame")
-    if TARGET not in df:
-        raise ValueError(f"df must contain the target column {TARGET!r}")
-    y = _labels(df[TARGET].to_numpy())
-    X_raw, _ = split_xy(df)
-    if pre_kw is not None and not isinstance(pre_kw, Mapping):
-        raise TypeError("pre_kw must be a mapping of Preprocessor arguments or None")
-    options = dict(pre_kw) if pre_kw is not None else {}
-    if "mode" in options:
-        raise ValueError("Pass mode directly, rather than through pre_kw")
-    rows = []
+        raise TypeError("make_model must be a function that returns a new model")
+    y = _labels(y)
+    if len(X) != len(y):
+        raise ValueError("X and y must have the same number of rows")
+    if isinstance(X, pd.DataFrame):
+        take = lambda rows: X.iloc[rows]
+    else:
+        X = np.asarray(X)
+        take = lambda rows: X[rows]
+    results = []
     for fold, (training, validation) in enumerate(_stratified_kfold(y, k, seed)):
-        preprocessor = Preprocessor(mode, **options).fit(X_raw.iloc[training], y[training])
-        X_tr = preprocessor.transform(X_raw.iloc[training])
-        X_va = preprocessor.transform(X_raw.iloc[validation])
-        model = make_model(preprocessor)
-        weights = balanced_weights(y[training]) if balance else None
-        rows.append({
+        X_tr, X_va = take(training), take(validation)
+        if prep is not None:
+            step = copy.deepcopy(prep)
+            X_tr = step.fit_transform(X_tr, y[training])
+            X_va = step.transform(X_va)
+        weights = _balanced_weights(y[training]) if balance else None
+        results.append({
             "fold": fold,
-            **_fit_and_evaluate(model, X_tr, y[training], X_va, y[validation], weights),
+            **_fit_and_evaluate(make_model(), X_tr, y[training], X_va, y[validation], weights),
         })
-    return pd.DataFrame(rows)
+    return pd.DataFrame(results)
 
 
 def benchmark(name, impl, model, X_tr, y_tr, X_va, y_va):
