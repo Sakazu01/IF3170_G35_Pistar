@@ -1,14 +1,10 @@
-from __future__ import annotations
-
 from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
 
-from src.config import SEED
 from src.evaluation import evaluate
-from src.models.logistic_regression import LogisticRegressionScratch
-from src.validation import binary_data
+from src.models.logistic_regression import LogisticRegressionScratch, binary_data
 
 REFERENCES = (
     {
@@ -27,7 +23,7 @@ REFERENCES = (
 
 def compare_optimizers(
     X_train, y_train, X_validation, y_validation, learning_rates=None,
-    max_iter=1000, tol=1e-5, random_state=SEED, penalty="l2",
+    max_iter=1000, tol=1e-5, random_state=42, penalty="l2",
     reg_strength=0.01, l1_ratio=0.5, batch_size=None,
 ):
     X_train, y_train = binary_data(X_train, y_train)

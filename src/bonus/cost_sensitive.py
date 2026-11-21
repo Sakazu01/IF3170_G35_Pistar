@@ -1,10 +1,7 @@
-from __future__ import annotations
-
 import numpy as np
 import pandas as pd
 
-from src.config import COST_FN, COST_FP
-from src.evaluation import best_threshold, confusion, evaluate, threshold_curve
+from src.evaluation import COST_FN, COST_FP, best_threshold, confusion, evaluate, threshold_curve
 
 
 def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):

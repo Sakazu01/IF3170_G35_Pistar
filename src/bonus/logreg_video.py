@@ -1,19 +1,20 @@
-from __future__ import annotations
-
 from pathlib import Path
 from subprocess import CalledProcessError
 from tempfile import TemporaryDirectory
 
 import numpy as np
 
-from src.config import SEED
-from src.models.logistic_regression import LogisticRegressionScratch
-from src.validation import binary_data, finite_scalar, positive_int
+from src.models.logistic_regression import (
+    LogisticRegressionScratch,
+    binary_data,
+    finite_scalar,
+    positive_int,
+)
 
 
 def make_log_loss_video(
     X, y, path, feature_index=0, learning_rate=0.2, max_iter=1000,
-    random_state=SEED, fps=15, max_frames=100, grid_points=65,
+    random_state=42, fps=15, max_frames=100, grid_points=65,
 ):
     import matplotlib
     import matplotlib.pyplot as plt
