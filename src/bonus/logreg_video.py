@@ -72,7 +72,7 @@ def make_log_loss_video(
     ax.set(xlabel=r"$\theta_0$ (intercept)", ylabel=rf"$\theta_1$ (feature {feature_index})")
     ax.legend(fontsize=8)
     loss_ax.plot(model.history_["epoch"], losses, color="#ddd5e8", label="Full history")
-    loss_trace, = loss_ax.plot([], [], color="#6d2fa3", linewidth=2, label="Observed so far")
+    loss_trace, = loss_ax.plot([], [], color="#3b6ea5", linewidth=2, label="Observed so far")
     loss_ax.set(xlabel="Epoch", ylabel="Mean training log-loss", xlim=(0, max(model.n_iter_, 1)))
     loss_ax.grid(alpha=0.2)
     loss_ax.legend(fontsize=8)

@@ -43,7 +43,7 @@ def plot_cost_sensitive(analysis):
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     curve = analysis["curve"]
-    axes[0].step(curve.threshold, curve.cost, where="pre", color="#6d2fa3")
+    axes[0].step(curve.threshold, curve.cost, where="pre", color="#3b6ea5")
     for cutoff, label, color in (
         (0.5, "Baseline", "gray"),
         (analysis["bayes_threshold"], "Bayes threshold", "#29838c"),

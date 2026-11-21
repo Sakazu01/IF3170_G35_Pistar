@@ -87,7 +87,7 @@ def plot_optimizer_comparison(comparison):
     axes[1].set(xscale="log", xlabel="Learning rate", ylabel="Validation log-loss", title="Learning-rate sensitivity")
     axes[1].legend()
     positions = np.arange(len(results))
-    axes[2].barh(positions, results.fit_time, color="#6d2fa3")
+    axes[2].barh(positions, results.fit_time, color="#3b6ea5")
     axes[2].set_yticks(positions, results.run, fontsize=7)
     axes[2].set(xlabel="Fit time (seconds)", title="Measured time (one run)")
     axes[2].invert_yaxis()

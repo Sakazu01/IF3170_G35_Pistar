@@ -1,7 +1,3 @@
-"""
-gak ada logic preprocessing sm evaluation, gk kerjaku kekny 
-"""
-
 from __future__ import annotations
 
 import pickle
