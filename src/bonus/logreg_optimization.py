@@ -51,7 +51,7 @@ def compare_optimizers(
             models[key] = model
             rows.append({
                 "run": key, "optimizer": optimizer, "learning_rate": model.learning_rate,
-                **evaluate(y_validation, model.predict_proba(X_validation)),
+                **evaluate(y_validation, model.predict_proba(X_validation)[:, 1]),
                 "train_objective": model.loss_history_[-1],
                 "train_log_loss": model.history_["train_log_loss"][-1],
                 "validation_log_loss": model.history_["validation_log_loss"][-1],
