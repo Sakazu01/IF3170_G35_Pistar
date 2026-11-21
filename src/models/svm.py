@@ -1,4 +1,3 @@
-from time import perf_counter
 import numpy as np
 
 from src.base import BaseClassifier
@@ -238,13 +237,12 @@ class SVMScratch(BaseClassifier):
             raise ValueError("Training requires both classes 0 and 1")
         weights = self._weights(sample_weight, len(y))
         weights = weights / weights.mean()
-        started = perf_counter()
         self.n_features_in_ = X.shape[1]
         self.classes_ = np.array([0, 1], dtype=int)
         self.gamma_ = resolve_gamma(self.gamma, X)
         s = np.where(y == 1, 1.0, -1.0)
         K = kernel_matrix(self.kernel, X, X, self.degree, self.gamma_, self.coef0)
-        alpha, b, passes, converged = self._smo(K, s, self.C * weights)
+        alpha, b, passes, _ = self._smo(K, s, self.C * weights)
 
         support = alpha > 1e-8
         self.alpha_ = alpha[support]
@@ -255,14 +253,11 @@ class SVMScratch(BaseClassifier):
         self.intercept_ = float(b)
         self.n_support_ = int(support.sum())
         self.n_iter_ = passes
-        self.converged_ = bool(converged)
-        self.dual_objective_ = float(alpha.sum() - 0.5 * (alpha * s) @ K @ (alpha * s))
         if self.kernel == "linear":
             self.coef_ = self.dual_coef_ @ self.support_vectors_
 
         scores = K[:, support] @ self.dual_coef_ + self.intercept_ 
         self.platt_a_, self.platt_b_ = platt_scaling(scores, y)
-        self.training_time_ = perf_counter() - started
         return self
 
     def _check_fitted(self):
@@ -278,52 +273,6 @@ class SVMScratch(BaseClassifier):
     def predict_proba(self, X):
         positive = sigmoid(-(self.platt_a_ * self.decision_function(X) + self.platt_b_))
         return np.column_stack([1.0 - positive, positive])
-
-
-class MulticlassSVM(BaseClassifier):
-
-    def __init__(self, strategy="ovr", **svm_params):
-        if strategy not in ("ovr", "ovo"):
-            raise ValueError("strategy must be 'ovr' or 'ovo'")
-        self.strategy = strategy
-        self.svm_params = dict(svm_params)
-        SVMScratch(**self.svm_params)  # validasi parameter lebih awal
-
-    def fit(self, X, y):
-        X, y = np.asarray(X, dtype=float), np.asarray(y)
-        self.classes_ = np.unique(y)
-        if len(self.classes_) < 2:
-            raise ValueError("Training requires at least two classes")
-        self.estimators_ = []
-        if self.strategy == "ovr":
-            pairs = [(c, None) for c in self.classes_]
-        else:
-            pairs = [(a, b) for i, a in enumerate(self.classes_) for b in self.classes_[i + 1:]]
-        for a, b in pairs:
-            mask = np.ones(len(y), bool) if b is None else (y == a) | (y == b)
-            target = (y[mask] == a).astype(int)
-            self.estimators_.append((a, b, SVMScratch(**self.svm_params).fit(X[mask], target)))
-        return self
-
-    def decision_function(self, X):
-        if not hasattr(self, "estimators_"):
-            raise RuntimeError("Call fit before prediction")
-        X = np.asarray(X, dtype=float)
-        return np.column_stack([m.decision_function(X) for _, _, m in self.estimators_])
-
-    def predict(self, X):
-        scores = self.decision_function(X)
-        if self.strategy == "ovr":
-            return self.classes_[np.argmax(scores, axis=1)]
-        votes = np.zeros((len(scores), len(self.classes_)))
-        index = {c: i for i, c in enumerate(self.classes_)}
-        rows = np.arange(len(scores))
-        for k, (a, b, _) in enumerate(self.estimators_):
-            votes[rows, np.where(scores[:, k] >= 0, index[a], index[b])] += 1
-        return self.classes_[np.argmax(votes, axis=1)]
-
-    def predict_proba(self, X):
-        raise NotImplementedError("MulticlassSVM exposes predict/decision_function only")
 
 
 SVM = SVMScratch

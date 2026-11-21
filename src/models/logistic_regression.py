@@ -256,24 +256,6 @@ class LogisticRegressionScratch(BaseClassifier):
     def _make_regularizer(self):
         return Regularizer(self.penalty, self.reg_strength, self.l1_ratio)
 
-    def loss_and_gradient(self, X, y, coef=None, intercept=None, sample_weight=None):
-        X, y = self._xy(X, y)
-        if coef is None:
-            self._check_fitted()
-        w = np.asarray(self.coef_ if coef is None else coef, dtype=float)
-        b = float(getattr(self, "intercept_", 0.0) if intercept is None else intercept)
-        if w.shape != (X.shape[1],) or not np.isfinite(w).all() or not np.isfinite(b):
-            raise ValueError("coef/intercept must be finite and match X's features")
-        if not self.fit_intercept and b != 0:
-            raise ValueError("intercept must be zero when fit_intercept=False")
-        weights = self._weights(sample_weight, len(y))
-        z = X @ w + b
-        residual = (self.sigmoid(z) - y) * (weights / weights.sum())
-        regularizer = self._make_regularizer()
-        grad_w = X.T @ residual + regularizer.smooth_gradient(w) + regularizer.l1 * np.sign(w)
-        grad_b = float(residual.sum()) if self.fit_intercept else 0.0
-        return self.binary_cross_entropy(y, z, weights) + regularizer.value(w), grad_w, grad_b
-
     def _initialize_fit(self, n_features, rng):
         self.n_features_in_ = n_features
         self.classes_ = np.array([0, 1], dtype=int)
