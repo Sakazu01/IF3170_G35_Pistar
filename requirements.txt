@@ -1,14 +1,17 @@
-numpy>=1.26,<2.3
-pandas>=2.1,<2.4
-scikit-learn>=1.4,<1.8
-matplotlib>=3.8,<3.11
+# Exact versions used to produce output/submission.csv (Python 3.12.6).
+# Other versions can change fold splits or mutual-information weights, and with them the submission.
+numpy==2.4.6
+pandas==3.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+matplotlib==3.11.0
+Pillow==12.2.0
+threadpoolctl==3.6.0
 
 jupyter>=1.0
 ipykernel>=6.25
 nbclient>=0.10
 nbformat>=5.10
-Pillow>=10.0
-threadpoolctl>=3.2
 
 imageio>=2.34
 imageio-ffmpeg>=0.5
