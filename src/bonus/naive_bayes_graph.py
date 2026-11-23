@@ -3,16 +3,18 @@ import numpy as np
 
 
 def feature_strengths(model, feature_names=None):
-    """Jarak Bhattacharyya (nat) antara distribusi fitur di kelas 0 dan kelas 1."""
+
     n_features = len(model.theta_[0]) if hasattr(model, "theta_") else 0
     names = list(feature_names) if feature_names is not None else [f"x{j}" for j in range(n_features)]
+    if len(names) != n_features:
+        raise ValueError('feature_names must match model features')
     strengths = {}
     for j in range(n_features):
         if j in model.constant_columns_:
             strengths[names[j]] = 0.0
         elif j in model.cat_log_prob_:
             table = np.exp(model.cat_log_prob_[j])
-            strengths[names[j]] = float(-np.log(np.sqrt(table[0] * table[1]).sum()))
+            strengths[names[j]] = float(max(0, -np.log(np.sqrt(table[0] * table[1]).sum()))) if table.shape[1] else 0.0
         else:
             v0, v1 = model.var_[0, j], model.var_[1, j]
             gap = model.theta_[1, j] - model.theta_[0, j]
@@ -23,7 +25,9 @@ def feature_strengths(model, feature_names=None):
 
 
 def plot_naive_bayes_graph(model, feature_names=None, top_n=15, class_name="is_canceled", path=None):
-    """Graf Naive Bayes: simpul kelas di tengah, panah ke tiap fitur (tebal = makin informatif)."""
+
+    if isinstance(top_n, bool) or not isinstance(top_n, (int, np.integer)) or top_n < 1:
+        raise ValueError('top_n must be a positive integer')
     strengths = feature_strengths(model, feature_names)
     ranked = sorted(strengths.items(), key=lambda item: item[1], reverse=True)[: int(top_n)]
     top = max(value for _, value in ranked) or 1.0

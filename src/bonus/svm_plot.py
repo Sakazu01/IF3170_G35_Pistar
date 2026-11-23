@@ -14,7 +14,7 @@ def fit_kernels(X2, y, kernels=("linear", "poly", "rbf"), **params):
 
 
 def plot_svm_kernels(X2, y, models=None, feature_names=("x1", "x2"), path=None, **params):
-    """Gambar bidang pemisah (f=0), margin (f=+-1), dan support vector tiap kernel."""
+
     X2 = np.asarray(X2, dtype=float)
     y = np.asarray(y).astype(int)
     models = models or fit_kernels(X2, y, **params)

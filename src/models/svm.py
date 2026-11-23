@@ -3,67 +3,8 @@ import numpy as np
 from src.base import BaseClassifier
 
 
-def finite_scalar(value, name, positive=False):
-    value = float(value)
-    if not np.isfinite(value) or (value <= 0 if positive else value < 0):
-        raise ValueError(f"{name} must be finite and {'positive' if positive else 'nonnegative'}")
-    return value
-
-
-def positive_int(value, name):
-    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
-        raise ValueError(f"{name} must be a positive integer")
-    return int(value)
-
-
-def random_seed(value):
-    if value is not None and (
-        isinstance(value, (bool, np.bool_))
-        or not isinstance(value, (int, np.integer))
-        or value < 0
-    ):
-        raise ValueError("random_state must be a nonnegative integer or None")
-    return None if value is None else int(value)
-
-
-def sample_weights(sample_weight, n_samples):
-    weights = np.ones(n_samples) if sample_weight is None else np.asarray(sample_weight, dtype=float)
-    if weights.shape != (n_samples,) or not np.isfinite(weights).all() or np.any(weights < 0):
-        raise ValueError("sample_weight must be finite, nonnegative, shape (n_samples,)")
-    if not np.isfinite(weights.sum()) or weights.sum() <= 0:
-        raise ValueError("sample_weight must have a finite positive sum")
-    return weights
-
-
-def binary_data(X, y):
-    X = np.asarray(X, dtype=float)
-    y = np.asarray(y)
-    if X.ndim != 2 or X.shape[0] == 0 or X.shape[1] == 0:
-        raise ValueError("X must be a nonempty 2-D matrix with at least one feature")
-    if y.shape != (len(X),) or not np.isin(y, [0, 1]).all():
-        raise ValueError("y must be a binary 0/1 vector with one label per row")
-    if not np.isfinite(X).all():
-        raise ValueError("X must contain finite features")
-    return X, y.astype(float, copy=False)
-
-
-def prediction_data(X, n_features):
-    X = np.asarray(X, dtype=float)
-    if X.ndim == 1:
-        X = X.reshape(1, -1)
-    if X.ndim != 2 or X.shape[1] != n_features or not np.isfinite(X).all():
-        raise ValueError(f"X must be finite with shape (n_samples, {n_features})")
-    return X
-
-
-def sigmoid(z):
-    z = np.asarray(z, dtype=float)
-    result = np.empty_like(z)
-    positive = z >= 0
-    result[positive] = 1.0 / (1.0 + np.exp(-z[positive]))
-    exp_z = np.exp(z[~positive])
-    result[~positive] = exp_z / (1.0 + exp_z)
-    return result
+from src.validation import (finite_scalar, positive_int, random_seed, sample_weights,
+                            binary_data, prediction_data, sigmoid)
 
 
 KERNELS = ("linear", "poly", "rbf")
@@ -142,6 +83,14 @@ def platt_scaling(scores, y, max_iter=100, tol=1e-9):
 
 
 class SVMScratch(BaseClassifier):
+
+
+
+
+
+
+
+
     _finite_scalar = staticmethod(finite_scalar)
     _positive_int = staticmethod(positive_int)
     _weights = staticmethod(sample_weights)
@@ -157,6 +106,9 @@ class SVMScratch(BaseClassifier):
         tol=1e-3,
         max_iter=100,
         random_state=42,
+        max_kernel_mb=1024.0,
+        batch_size=256,
+        calibration_fraction=0.0,
     ):
         self.C = self._finite_scalar(C, "C", positive=True)
         self.degree, self.coef0 = check_kernel_params(kernel, degree, coef0)
@@ -169,6 +121,11 @@ class SVMScratch(BaseClassifier):
         self.tol = self._finite_scalar(tol, "tol", positive=True)
         self.max_iter = self._positive_int(max_iter, "max_iter")
         self.random_state = random_seed(random_state)
+        self.max_kernel_mb = finite_scalar(max_kernel_mb, "max_kernel_mb", positive=True)
+        self.batch_size = positive_int(batch_size, "batch_size")
+        self.calibration_fraction = float(calibration_fraction)
+        if not np.isfinite(self.calibration_fraction) or not 0 <= self.calibration_fraction < 0.5:
+            raise ValueError("calibration_fraction must be in [0, 0.5)")
 
     def _smo(self, K, s, c):
         n, tol = len(s), self.tol
@@ -188,9 +145,17 @@ class SVMScratch(BaseClassifier):
             if low >= high:
                 return 0
             eta = K[i, i] + K[j, j] - 2.0 * K[i, j]
+            gradient = yj * (err[i] - err[j])
             if eta <= 1e-12:
-                return 0
-            aj_new = float(np.clip(aj + yj * (err[i] - err[j]) / eta, low, high))
+                
+                
+                endpoints = np.array([low, high]) - aj
+                gains = gradient * endpoints - 0.5 * eta * endpoints**2
+                aj_new = float(aj + endpoints[np.argmax(gains)])
+                if gains.max() <= 1e-12:
+                    return 0
+            else:
+                aj_new = float(np.clip(aj + gradient / eta, low, high))
             if abs(aj_new - aj) < 1e-5 * (aj_new + aj + 1e-5):
                 return 0
             ai_new = ai + yi * yj * (aj - aj_new)
@@ -236,12 +201,36 @@ class SVMScratch(BaseClassifier):
         if np.unique(y).size != 2:
             raise ValueError("Training requires both classes 0 and 1")
         weights = self._weights(sample_weight, len(y))
+        keep = weights > 0
+        X, y, weights = X[keep], y[keep], weights[keep]
+        if np.unique(y).size != 2:
+            raise ValueError("Both classes need positive total weight")
+        calibration = None
+        if self.calibration_fraction:
+            rng = np.random.default_rng(self.random_state)
+            held = []
+            for label in (0, 1):
+                rows = rng.permutation(np.flatnonzero(y == label))
+                if len(rows) < 2:
+                    raise ValueError("Calibration requires at least two rows of each class")
+                held.extend(rows[:max(1, int(len(rows) * self.calibration_fraction))])
+            held = np.sort(held)
+            training = np.ones(len(y), dtype=bool)
+            training[held] = False
+            calibration = X[held], y[held]
+            X, y, weights = X[training], y[training], weights[training]
+        self.kernel_peak_mb_ = 3 * len(X)**2 * 8 / 1024**2
+        if self.kernel_peak_mb_ > self.max_kernel_mb:
+            raise MemoryError(f"Estimated kernel peak {self.kernel_peak_mb_:.1f} MiB exceeds "
+                              f"max_kernel_mb={self.max_kernel_mb:g}; use a stratified training subset")
         weights = weights / weights.mean()
         self.n_features_in_ = X.shape[1]
         self.classes_ = np.array([0, 1], dtype=int)
         self.gamma_ = resolve_gamma(self.gamma, X)
         s = np.where(y == 1, 1.0, -1.0)
         K = kernel_matrix(self.kernel, X, X, self.degree, self.gamma_, self.coef0)
+        if not np.isfinite(K).all():
+            raise FloatingPointError("Kernel overflow; scale features or lower degree/gamma")
         alpha, b, passes, _ = self._smo(K, s, self.C * weights)
 
         support = alpha > 1e-8
@@ -257,7 +246,19 @@ class SVMScratch(BaseClassifier):
             self.coef_ = self.dual_coef_ @ self.support_vectors_
 
         scores = K[:, support] @ self.dual_coef_ + self.intercept_ 
-        self.platt_a_, self.platt_b_ = platt_scaling(scores, y)
+        margin = s * scores
+        violation = np.maximum(np.where(alpha < self.C * weights - 1e-8, 1 - margin, 0),
+                               np.where(alpha > 1e-8, margin - 1, 0))
+        self.max_kkt_violation_ = float(max(0, violation.max()))
+        self.converged_ = self.max_kkt_violation_ <= self.tol * 2
+        self.dual_equality_residual_ = float(abs(alpha @ s))
+        self.n_training_samples_ = len(X)
+        if calibration is None:
+            self.calibration_method_ = "in_sample_platt"
+            self.platt_a_, self.platt_b_ = platt_scaling(scores, y)
+        else:
+            self.calibration_method_ = "held_out_platt"
+            self.platt_a_, self.platt_b_ = platt_scaling(self.decision_function(calibration[0]), calibration[1])
         return self
 
     def _check_fitted(self):
@@ -267,8 +268,16 @@ class SVMScratch(BaseClassifier):
     def decision_function(self, X):
         self._check_fitted()
         X = prediction_data(X, self.n_features_in_)
-        K = kernel_matrix(self.kernel, X, self.support_vectors_, self.degree, self.gamma_, self.coef0)
-        return K @ self.dual_coef_ + self.intercept_
+        scores = np.empty(len(X))
+        batch = min(self.batch_size, max(1, int(self.max_kernel_mb * 1024**2 /
+                                               (24 * max(1, self.n_support_)))))
+        for start in range(0, len(X), batch):
+            K = kernel_matrix(self.kernel, X[start:start + batch], self.support_vectors_,
+                              self.degree, self.gamma_, self.coef0)
+            scores[start:start + batch] = K @ self.dual_coef_ + self.intercept_
+        if not np.isfinite(scores).all():
+            raise FloatingPointError("Non-finite SVM decision scores")
+        return scores
 
     def predict_proba(self, X):
         positive = sigmoid(-(self.platt_a_ * self.decision_function(X) + self.platt_b_))

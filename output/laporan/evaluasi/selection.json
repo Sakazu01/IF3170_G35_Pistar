@@ -1,0 +1,114 @@
+{
+  "metric": "macro_f1",
+  "kaggle_metric_verified": false,
+  "seed": 42,
+  "folds": 5,
+  "selection_rule": "3-fold screening; 5-fold mean score at 0.5; OOF coarse/fine threshold",
+  "selected": {
+    "Tree": {
+      "name": "Ablation raw",
+      "family": "Tree",
+      "params": {
+        "criterion": "gain_ratio",
+        "max_depth": 15,
+        "min_samples_leaf": 5
+      },
+      "view": "tree_imputed",
+      "groups": [],
+      "balanced": false,
+      "max_train": null,
+      "ccp_alpha": 0.0005,
+      "select_k": null
+    },
+    "KNN": {
+      "name": "KNN full k31 distance",
+      "family": "KNN",
+      "params": {
+        "k": 31,
+        "weighted": true
+      },
+      "view": "matrix",
+      "groups": [
+        "basic"
+      ],
+      "balanced": false,
+      "max_train": null,
+      "ccp_alpha": 0.0,
+      "select_k": null
+    },
+    "Logistic": {
+      "name": "LR full interactions",
+      "family": "Logistic",
+      "params": {
+        "optimizer": "adam",
+        "learning_rate": 0.03,
+        "max_iter": 1000,
+        "penalty": "elasticnet",
+        "reg_strength": 0.001
+      },
+      "view": "matrix",
+      "groups": [
+        "basic",
+        "stay",
+        "history",
+        "price",
+        "interactions"
+      ],
+      "balanced": false,
+      "max_train": null,
+      "ccp_alpha": 0.0,
+      "select_k": null
+    },
+    "SVM": {
+      "name": "SVM RBF 3000 calibrated",
+      "family": "SVM",
+      "params": {
+        "kernel": "rbf",
+        "C": 3.0,
+        "max_iter": 300,
+        "calibration_fraction": 0.15
+      },
+      "view": "matrix",
+      "groups": [
+        "basic"
+      ],
+      "balanced": false,
+      "max_train": 3000,
+      "ccp_alpha": 0.0,
+      "select_k": null
+    },
+    "Bayes": {
+      "name": "Bayes baseline raw scale",
+      "family": "Bayes",
+      "params": {},
+      "view": "tree",
+      "groups": [
+        "basic"
+      ],
+      "balanced": false,
+      "max_train": null,
+      "ccp_alpha": 0.0,
+      "select_k": null
+    }
+  },
+  "final": {
+    "name": "Ablation raw",
+    "family": "Tree",
+    "params": {
+      "criterion": "gain_ratio",
+      "max_depth": 15,
+      "min_samples_leaf": 5
+    },
+    "view": "tree_imputed",
+    "groups": [],
+    "balanced": false,
+    "max_train": null,
+    "ccp_alpha": 0.0005,
+    "select_k": null
+  },
+  "threshold": 0.47,
+  "n_development": 21896,
+  "screening_candidates": 102,
+  "confirmation_candidates": 17,
+  "holdout_previously_observed": true
+}

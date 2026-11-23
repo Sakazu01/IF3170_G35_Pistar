@@ -6,36 +6,16 @@ import pandas as pd
 
 
 __all__ = [
-    "COST_FP", "COST_FN", "confusion", "roc_auc", "pr_auc", "expected_cost", "evaluate",
+    "COST_FP", "COST_FN", "confusion", "confusion_matrix", "roc_auc", "pr_auc", "expected_cost", "evaluate",
     "threshold_curve", "best_threshold", "cross_validate", "benchmark",
 ]
 
-# Biaya dari soal: salah menandai batal (FP) dua kali lebih mahal dari FN.
+
 COST_FP = 2.0
 COST_FN = 1.0
 
 
-def finite_scalar(value, name, positive=False):
-    value = float(value)
-    if not np.isfinite(value) or (value <= 0 if positive else value < 0):
-        raise ValueError(f"{name} must be finite and {'positive' if positive else 'nonnegative'}")
-    return value
-
-
-def positive_int(value, name):
-    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value <= 0:
-        raise ValueError(f"{name} must be a positive integer")
-    return int(value)
-
-
-def random_seed(value):
-    if value is not None and (
-        isinstance(value, (bool, np.bool_))
-        or not isinstance(value, (int, np.integer))
-        or value < 0
-    ):
-        raise ValueError("random_state must be a nonnegative integer or None")
-    return None if value is None else int(value)
+from src.validation import finite_scalar, positive_int, random_seed
 
 
 def decision_threshold(value):
@@ -73,6 +53,12 @@ def confusion(y, pred):
     return tn, fp, fn, tp
 
 
+def confusion_matrix(y, pred):
+
+    tn, fp, fn, tp = confusion(y, pred)
+    return np.array([[tn, fp], [fn, tp]])
+
+
 def roc_auc(y, score):
     y, score = _scores(y, score)
     n1 = int(y.sum())
@@ -85,6 +71,7 @@ def roc_auc(y, score):
 
 
 def pr_auc(y, score):
+
     y, score = _scores(y, score)
     n_positive = int(y.sum())
     if n_positive == 0:
@@ -106,14 +93,24 @@ def expected_cost(y, pred, fp_cost=COST_FP, fn_cost=COST_FN):
 
 
 def evaluate(y, proba, threshold=0.5):
+
+
+
+
+
     y, proba = _scores(y, proba, probabilities=True)
     threshold = decision_threshold(threshold)
     tn, fp, fn, tp = confusion(y, proba >= threshold)
+    precision = float(tp / (tp + fp)) if tp + fp else 0.0
+    recall = float(tp / (tp + fn)) if tp + fn else 0.0
+    f1 = float(2 * tp / (2 * tp + fp + fn)) if 2 * tp + fp + fn else 0.0
+    negative_f1 = float(2 * tn / (2 * tn + fp + fn)) if 2 * tn + fp + fn else 0.0
     return {
         "accuracy": float((tp + tn) / len(y)),
-        "precision": float(tp / (tp + fp)) if tp + fp else 0.0,
-        "recall": float(tp / (tp + fn)) if tp + fn else 0.0,
-        "f1": float(2 * tp / (2 * tp + fp + fn)) if 2 * tp + fp + fn else 0.0,
+        "precision_positive": precision, "recall_positive": recall,
+        "f1_positive": f1, "macro_f1": (f1 + negative_f1) / 2,
+        "precision": precision, "recall": recall, "f1": f1,
+        "tn": tn, "fp": fp, "fn": fn, "tp": tp,
         "roc_auc": roc_auc(y, proba),
         "pr_auc": pr_auc(y, proba),
         "expected_cost": float((COST_FP * fp + COST_FN * fn) / len(y)),
@@ -138,6 +135,9 @@ def threshold_curve(y, proba):
         "precision": tp / np.maximum(tp + fp, 1),
         "recall": tp / np.maximum(tp + fn, 1),
         "f1": 2 * tp / np.maximum(2 * tp + fp + fn, 1),
+        "f1_positive": 2 * tp / np.maximum(2 * tp + fp + fn, 1),
+        "macro_f1": (tp / np.maximum(2 * tp + fp + fn, 1)
+                     + tn / np.maximum(2 * tn + fp + fn, 1)),
         "cost": COST_FP * fp + COST_FN * fn,
         "expected_cost": (COST_FP * fp + COST_FN * fn) / len(y),
     })
@@ -147,8 +147,8 @@ def best_threshold(y, proba, metric="f1"):
     if metric in ("roc_auc", "pr_auc"):
         _scores(y, proba, probabilities=True)
         return 0.5
-    if metric not in ("accuracy", "precision", "recall", "f1", "cost", "expected_cost"):
-        raise ValueError("metric must be accuracy, precision, recall, f1, roc_auc, pr_auc, or cost/expected_cost")
+    if metric not in ("accuracy", "precision", "recall", "f1", "f1_positive", "macro_f1", "cost", "expected_cost"):
+        raise ValueError("Unsupported threshold metric")
     curve = threshold_curve(y, proba)
     if metric in ("cost", "expected_cost"):
         index = int(np.argmin(curve[metric].to_numpy()))
@@ -222,8 +222,8 @@ def _balanced_weights(y):
 
 
 def cross_validate(make_model, X, y, prep=None, k=5, seed=42, balance=False):
-    # make_model: fungsi tanpa argumen yang mengembalikan model baru.
-    # prep: transformer bergaya sklearn, di-fit ulang di tiap fold supaya tidak bocor.
+    
+    
     if not callable(make_model):
         raise TypeError("make_model must be a function that returns a new model")
     y = _labels(y)

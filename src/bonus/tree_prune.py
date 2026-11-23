@@ -5,6 +5,7 @@ import pandas as pd
 
 from src.evaluation import evaluate
 from src.models.decision_tree import DecisionTree
+from src.validation import finite_scalar, positive_int
 
 
 def _preorder(root):
@@ -16,7 +17,8 @@ def _preorder(root):
     return nodes
 
 
-def _pruning_sequence(root):
+
+def _pruning_sequence(root, impurity=DecisionTree._entropy):
     nodes = _preorder(root)
     node_index = {id(node): node_idx for node_idx, node in enumerate(nodes)}
     parent = np.full(len(nodes), -1)
@@ -27,7 +29,7 @@ def _pruning_sequence(root):
     for node_idx in range(len(nodes) - 1, 0, -1):
         subtree_size[parent[node_idx]] += subtree_size[node_idx]
 
-    risk = np.array([node.n / root.n * DecisionTree._entropy(node.proba, 1.0) for node in nodes])
+    risk = np.array([node.n / root.n * impurity(node.proba, 1.0) for node in nodes])
     internal = np.array([node.feature is not None for node in nodes])
     subtree_risk = np.where(internal, 0.0, risk)
     subtree_leaves = (~internal).astype(float)
@@ -66,22 +68,25 @@ def _apply(model, steps, ccp_alpha):
             break
         node = nodes[node_idx]
         node.feature = node.threshold = node.categories = None
+        node.category_left = None
         node.children, node.fractions, node.gain = [], np.empty(0), 0.0
     return pruned
 
 
 def cost_complexity_path(model):
-    _, path = _pruning_sequence(model.tree_)
+    _, path = _pruning_sequence(model.tree_, model._impurity)
     return pd.DataFrame(path, columns=["ccp_alpha", "n_leaves"])
 
 
 def prune(model, ccp_alpha):
-    steps, _ = _pruning_sequence(model.tree_)
+    ccp_alpha = finite_scalar(ccp_alpha, 'ccp_alpha')
+    steps, _ = _pruning_sequence(model.tree_, model._impurity)
     return _apply(model, steps, ccp_alpha)
 
 
 def tune_ccp_alpha(model, X_val, y_val, metric="roc_auc", max_points=40):
-    steps, path = _pruning_sequence(model.tree_)
+    max_points = positive_int(max_points, 'max_points')
+    steps, path = _pruning_sequence(model.tree_, model._impurity)
     picked = np.linspace(0, len(path) - 1, min(max_points, len(path))).round().astype(int)
     rows = []
     for alpha, n_leaves in (path[path_idx] for path_idx in np.unique(picked)):
@@ -96,19 +101,20 @@ def tune_ccp_alpha(model, X_val, y_val, metric="roc_auc", max_points=40):
 def plot_pruning(table, metric="roc_auc", path=None):
     import matplotlib.pyplot as plt
 
-    table = table[table.ccp_alpha > 0]
+    table = table.copy()
     fig, (top, bottom) = plt.subplots(2, 1, figsize=(7, 6), sharex=True)
     top.plot(table.ccp_alpha, table[metric], marker="o", ms=3)
     top.set_ylabel(f"{metric} (validasi)")
-    best = table.loc[table[metric].idxmax()]
+    score = (-table[metric] if metric == 'expected_cost' else table[metric]).round(12)
+    best = table.loc[score == score.max()].sort_values('ccp_alpha').iloc[-1]
     top.axvline(best.ccp_alpha, ls="--", c="gray", label=f"alpha={best.ccp_alpha:.2e}")
     top.legend()
     bottom.step(table.ccp_alpha, table.n_leaves, where="post")
     bottom.set_ylabel("jumlah daun")
     bottom.set_yscale("log")
     bottom.set_xlabel("ccp_alpha")
-    bottom.set_xscale("log")
-    fig.suptitle("Cost-complexity pruning DecisionTree (C4.5)")
+    bottom.set_xscale("symlog", linthresh=1e-6)
+    fig.suptitle("Cost-complexity pruning DecisionTree")
     fig.tight_layout()
     if path is not None:
         fig.savefig(path, dpi=150, bbox_inches="tight")

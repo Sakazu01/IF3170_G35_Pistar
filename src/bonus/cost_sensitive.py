@@ -5,6 +5,12 @@ from src.evaluation import COST_FN, COST_FP, best_threshold, confusion, evaluate
 
 
 def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):
+
+
+
+
+
+
     validation_proba = model.predict_proba(X_validation)[:, 1]
     threshold = best_threshold(y_validation, validation_proba, metric="cost")
     curve = threshold_curve(y_validation, validation_proba)

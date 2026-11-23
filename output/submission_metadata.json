@@ -1,0 +1,246 @@
+{
+  "threshold": 0.47,
+  "configuration": {
+    "name": "Ablation raw",
+    "family": "Tree",
+    "params": {
+      "criterion": "gain_ratio",
+      "max_depth": 15,
+      "min_samples_leaf": 5
+    },
+    "view": "tree_imputed",
+    "groups": [],
+    "balanced": false,
+    "max_train": null,
+    "ccp_alpha": 0.0005,
+    "select_k": null
+  },
+  "metadata": {
+    "input_sha256": {
+      "train.csv": "2773be159fee45aac59b32354949d00af0badbc37c45420d5ab5dc676bbcc7ed",
+      "test.csv": "aa59d8ddeb73efea1887eb8c7611d848dff332bc4ade7258c3408cec07050610",
+      "sample_submission.csv": "be2885697720fa1c645a422510a9ca2e81f6e14cb54b6dfd8760d5c3960e1c1b"
+    },
+    "source_sha256": {
+      "src\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "src\\base.py": "59f4e0655871a0df1b9d0eb6195a7b3f28877d06f9ac4683b3e27ae5734f9be0",
+      "src\\bonus\\__init__.py": "ba95d48a5d5586f25c42facb5f74eadb9509ee621bc4780ebf83d149dca6419d",
+      "src\\bonus\\cost_sensitive.py": "cf8541279e6084e8cce1c368093900bdecfbe5675daab4e3e0a96f7790817b25",
+      "src\\bonus\\logreg_optimization.py": "64cb53c0041310896ebd3732a78e17b5836d60a97c365dad90fe43ae9243d717",
+      "src\\bonus\\logreg_video.py": "40461ca2411ae88c8b80b72c6da4b3748ee79992a8457fa71f5bc1728fbfb0c7",
+      "src\\bonus\\naive_bayes_graph.py": "5d9e3e980f12ffe95e4013d9648c3fae6ad54d507d1388fb26d035e54c14507d",
+      "src\\bonus\\svm_plot.py": "9346dcab960db7f8ce51d48cb692cf08e309015af8c061eff0e4ecb45b6a2b44",
+      "src\\bonus\\tree_prune.py": "29f6e27c6f2e34f2d3a76e3bd911b216997b059b2f2fd9f1e3953393841ae654",
+      "src\\bonus\\tree_viz.py": "a5fc1c44e5a4dc06addc79cc588a610d8526032b59392ebf8caacec4faea6fe0",
+      "src\\evaluation.py": "ae464cfd7928ea9eaa7925f80ddb0435c94f5d01d8c3ea6ef5152348ea716582",
+      "src\\experiments.py": "17ee8fddbe16b3cb104fcf0b625d921c13d85445009d37bb17d2ede1a877d5f1",
+      "src\\generate_submission.py": "0310732bce1cf4aacbef00eab32fe4e0baeb8251a6754aa8e46cd28d96f320f7",
+      "src\\models\\__init__.py": "f70e73c7ce0de5e3a077c4300a9fb11d0a563b2d0af10db2617a39fc203b1189",
+      "src\\models\\decision_tree.py": "e447255cafb80ddc133b00736dc166e3b711e1b5dd6e733e5f93fe4909813308",
+      "src\\models\\knn.py": "948e20006fafa180f57a5d2a98fe1d28c4d7943ca4618c7142469f322453cc15",
+      "src\\models\\logistic_regression.py": "1a339b6aed03637e0e9b7d93ba9911c658d31c01ec722e95d6ac6051965601fd",
+      "src\\models\\naive_bayes.py": "101804753b44c3e88629e9d43c465dda8f21a8bb8ba21438b87ead6881c77d62",
+      "src\\models\\svm.py": "58a5f2fb1482c64a6fd4fb7cd79ff57fd233f3e5b00576ff2cb3c2fe555bd059",
+      "src\\preprocessing.py": "5bf4532cf3f23d481dcd2a1f4d41826bf2c2329de04a79cd2a907bb4fdd83756",
+      "src\\submission.py": "58d815af796dc1755bbeeb62cbd44085e8c00c036c180354613abb529e0a8008",
+      "src\\tuning.py": "9fa8685de9f3c50f2a08df01868990947b0390be7388f98826cb99e517f51619",
+      "src\\validation.py": "7db1309b1b3270fc478b5cb673e251b2c2db4f4b13d02262cd7762177c26f0b7"
+    },
+    "selection": {
+      "metric": "macro_f1",
+      "kaggle_metric_verified": false,
+      "seed": 42,
+      "folds": 5,
+      "selection_rule": "3-fold screening; 5-fold mean score at 0.5; OOF coarse/fine threshold",
+      "selected": {
+        "Tree": {
+          "name": "Ablation raw",
+          "family": "Tree",
+          "params": {
+            "criterion": "gain_ratio",
+            "max_depth": 15,
+            "min_samples_leaf": 5
+          },
+          "view": "tree_imputed",
+          "groups": [],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0005,
+          "select_k": null
+        },
+        "KNN": {
+          "name": "KNN full k31 distance",
+          "family": "KNN",
+          "params": {
+            "k": 31,
+            "weighted": true
+          },
+          "view": "matrix",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "Logistic": {
+          "name": "LR full interactions",
+          "family": "Logistic",
+          "params": {
+            "optimizer": "adam",
+            "learning_rate": 0.03,
+            "max_iter": 1000,
+            "penalty": "elasticnet",
+            "reg_strength": 0.001
+          },
+          "view": "matrix",
+          "groups": [
+            "basic",
+            "stay",
+            "history",
+            "price",
+            "interactions"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "SVM": {
+          "name": "SVM RBF 3000 calibrated",
+          "family": "SVM",
+          "params": {
+            "kernel": "rbf",
+            "C": 3.0,
+            "max_iter": 300,
+            "calibration_fraction": 0.15
+          },
+          "view": "matrix",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": 3000,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "Bayes": {
+          "name": "Bayes baseline raw scale",
+          "family": "Bayes",
+          "params": {},
+          "view": "tree",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        }
+      },
+      "final": {
+        "name": "Ablation raw",
+        "family": "Tree",
+        "params": {
+          "criterion": "gain_ratio",
+          "max_depth": 15,
+          "min_samples_leaf": 5
+        },
+        "view": "tree_imputed",
+        "groups": [],
+        "balanced": false,
+        "max_train": null,
+        "ccp_alpha": 0.0005,
+        "select_k": null
+      },
+      "threshold": 0.47,
+      "n_development": 21896,
+      "screening_candidates": 102,
+      "confirmation_candidates": 17,
+      "holdout_previously_observed": true
+    },
+    "cv": {
+      "candidate": "Ablation raw",
+      "family": "Tree",
+      "macro_f1_mean": 0.8268392981324322,
+      "macro_f1_std": 0.0035209017986335,
+      "accuracy_mean": 0.8495163375978791,
+      "accuracy_std": 0.0026547702839011,
+      "roc_auc_mean": 0.9084126945117148,
+      "fit_time_mean": 2.391189639999721,
+      "roc_auc_std": 0.0054816760721222,
+      "f1_positive_mean": 0.7642225348696126,
+      "f1_positive_std": 0.0066244315843452,
+      "threshold_oof": 0.47,
+      "oof_macro_f1_tuned": 0.8275713054471623,
+      "oof_accuracy_tuned": 0.8498355864084765,
+      "train_accuracy_mean": 0.8618582433822064,
+      "train_macro_f1_mean": 0.8409233062122763,
+      "configuration": "{\"balanced\": false, \"ccp_alpha\": 0.0005, \"family\": \"Tree\", \"groups\": [], \"max_train\": null, \"name\": \"Ablation raw\", \"params\": {\"criterion\": \"gain_ratio\", \"max_depth\": 15, \"min_samples_leaf\": 5}, \"select_k\": null, \"view\": \"tree_imputed\"}"
+    },
+    "holdout": [
+      {
+        "family": "Tree",
+        "phase": "optimized",
+        "threshold_kind": "oof",
+        "threshold": 0.47,
+        "candidate": "Ablation raw",
+        "accuracy": 0.8473616943582253,
+        "precision_positive": 0.781442146450531,
+        "recall_positive": 0.7585458491589799,
+        "f1_positive": 0.7698237885462555,
+        "macro_f1": 0.8278236670128164,
+        "precision": 0.781442146450531,
+        "recall": 0.7585458491589799,
+        "f1": 0.7698237885462555,
+        "tn": 3243,
+        "fp": 391,
+        "fn": 445,
+        "tp": 1398,
+        "roc_auc": 0.9138940989885422,
+        "pr_auc": 0.847327344039516,
+        "expected_cost": 0.2240277524192075,
+        "preprocess_time": 0.3552015999994182,
+        "fit_time": 2.880036800001108,
+        "n_train": 21896,
+        "n_core_train": 21896,
+        "converged": null,
+        "training_matrix_mb": 5.17864990234375,
+        "estimated_kernel_peak_mb": null,
+        "predict_time": 0.0714396000003034,
+        "train_accuracy": 0.8619382535622945,
+        "train_precision_positive": 0.8029833111800325,
+        "train_recall_positive": 0.7629806342969407,
+        "train_f1_positive": 0.782471036914442,
+        "train_macro_f1": 0.8406752240936151,
+        "train_precision": 0.8029833111800325,
+        "train_recall": 0.7629806342969407,
+        "train_f1": 0.782471036914442,
+        "train_tn": 13436,
+        "train_fp": 1334,
+        "train_fn": 1689,
+        "train_tp": 5437,
+        "train_roc_auc": 0.9267280165075836,
+        "train_pr_auc": 0.8785831296495353,
+        "train_expected_cost": 0.1989861161856047
+      }
+    ],
+    "official_kaggle_metric_verified": false
+  },
+  "timing": {
+    "preprocess_time": 0.40554229999906966,
+    "fit_time": 3.3532255999998597,
+    "n_train": 27373,
+    "n_core_train": 27373,
+    "converged": null,
+    "training_matrix_mb": 6.474021911621094,
+    "estimated_kernel_peak_mb": null
+  },
+  "sha256": "ede5938ee61a9ccc67718a71f54d9e382ed1ac379442c755aaacd2f8bce83dcc",
+  "n_train": 27373,
+  "n_test": 6844,
+  "model_class": "DecisionTree",
+  "serialization_identical": true,
+  "kaggle_uploaded": false
+}
