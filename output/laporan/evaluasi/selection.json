@@ -24,15 +24,19 @@
       "select_k": null
     },
     "KNN": {
-      "name": "KNN full k31 distance",
+      "name": "KNN manhattan k11 target encoding + MI weights",
       "family": "KNN",
       "params": {
-        "k": 31,
-        "weighted": true
+        "k": 11,
+        "weighted": true,
+        "metric": "manhattan"
       },
       "view": "matrix",
       "groups": [
-        "basic"
+        "basic",
+        "booking_date",
+        "target_enc",
+        "mi_weights"
       ],
       "balanced": false,
       "max_train": null,
@@ -95,26 +99,28 @@
     }
   },
   "final": {
-    "name": "Tree smoothing0.5",
-    "family": "Tree",
+    "name": "KNN manhattan k11 target encoding + MI weights",
+    "family": "KNN",
     "params": {
-      "criterion": "gini",
-      "max_depth": 12,
-      "min_samples_leaf": 5,
-      "leaf_smoothing": 0.5
+      "k": 11,
+      "weighted": true,
+      "metric": "manhattan"
     },
-    "view": "tree",
+    "view": "matrix",
     "groups": [
-      "basic"
+      "basic",
+      "booking_date",
+      "target_enc",
+      "mi_weights"
     ],
     "balanced": false,
     "max_train": null,
     "ccp_alpha": 0.0,
     "select_k": null
   },
-  "threshold": 0.43,
+  "threshold": 0.49,
   "n_development": 21899,
-  "screening_candidates": 102,
+  "screening_candidates": 103,
   "confirmation_candidates": 17,
   "holdout_previously_observed": true
 }
