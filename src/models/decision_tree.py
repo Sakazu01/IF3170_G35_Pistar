@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 import numpy as np
 from src.base import BaseClassifier
-from src.validation import sample_weights, positive_int, prediction_data, finite_scalar
+from src.base import sample_weights, positive_int, prediction_data, finite_scalar
 
 
 @dataclass
@@ -19,16 +19,6 @@ class Node:
 
 
 class DecisionTree(BaseClassifier):
-
-
-
-
-
-
-
-
-
-
     def __init__(
         self,
         criterion="gain_ratio",

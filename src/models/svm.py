@@ -3,7 +3,7 @@ import numpy as np
 from src.base import BaseClassifier
 
 
-from src.validation import (finite_scalar, positive_int, random_seed, sample_weights,
+from src.base import (finite_scalar, positive_int, random_seed, sample_weights,
                             binary_data, prediction_data, sigmoid)
 
 
@@ -83,14 +83,6 @@ def platt_scaling(scores, y, max_iter=100, tol=1e-9):
 
 
 class SVMScratch(BaseClassifier):
-
-
-
-
-
-
-
-
     _finite_scalar = staticmethod(finite_scalar)
     _positive_int = staticmethod(positive_int)
     _weights = staticmethod(sample_weights)

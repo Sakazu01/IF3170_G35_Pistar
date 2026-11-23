@@ -3,7 +3,6 @@ import numpy as np
 
 
 def feature_strengths(model, feature_names=None):
-
     n_features = len(model.theta_[0]) if hasattr(model, "theta_") else 0
     names = list(feature_names) if feature_names is not None else [f"x{j}" for j in range(n_features)]
     if len(names) != n_features:
@@ -25,7 +24,6 @@ def feature_strengths(model, feature_names=None):
 
 
 def plot_naive_bayes_graph(model, feature_names=None, top_n=15, class_name="is_canceled", path=None):
-
     if isinstance(top_n, bool) or not isinstance(top_n, (int, np.integer)) or top_n < 1:
         raise ValueError('top_n must be a positive integer')
     strengths = feature_strengths(model, feature_names)

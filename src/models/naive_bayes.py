@@ -1,18 +1,9 @@
-
-
 import numpy as np
 from src.base import BaseClassifier
-from src.validation import binary_data, prediction_data, sample_weights, finite_scalar
+from src.base import binary_data, prediction_data, sample_weights, finite_scalar
 
 
 class NaiveBayes(BaseClassifier):
-
-
-
-
-
-
-
     def __init__(self, alpha=1.0, var_smoothing=1e-9, categorical_idx=None):
         self.alpha = finite_scalar(alpha, "alpha", positive=True)
         self.var_smoothing = finite_scalar(var_smoothing, "var_smoothing")
@@ -84,7 +75,6 @@ class NaiveBayes(BaseClassifier):
         return probabilities / probabilities.sum(axis=1, keepdims=True)
 
     def _joint_log_likelihood(self, X):
-
         if not hasattr(self, "class_prior_"):
             raise RuntimeError("Call fit before prediction")
         X = prediction_data(X, self.n_features_in_, allow_nan=True)

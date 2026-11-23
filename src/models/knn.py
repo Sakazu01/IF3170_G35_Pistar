@@ -1,16 +1,9 @@
 import numpy as np
 from src.base import BaseClassifier
-from src.validation import binary_data, prediction_data, sample_weights, positive_int, finite_scalar
+from src.base import binary_data, prediction_data, sample_weights, positive_int, finite_scalar
 
 
 class KNN(BaseClassifier):
-
-
-
-
-
-
-
     def __init__(
         self,
         k=15,

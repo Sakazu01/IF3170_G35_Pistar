@@ -1,19 +1,14 @@
 import numpy as np
 import pandas as pd
 
-from src.evaluation import COST_FN, COST_FP, best_threshold, confusion, evaluate, threshold_curve
+from src.evaluation import COST_FN, COST_FP, evaluate, threshold_curve
 
 
 def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):
-
-
-
-
-
-
+    """Bandingkan threshold 0.5, threshold Bayes 2/3, dan threshold termurah di data validasi."""
     validation_proba = model.predict_proba(X_validation)[:, 1]
-    threshold = best_threshold(y_validation, validation_proba, metric="cost")
     curve = threshold_curve(y_validation, validation_proba)
+    threshold = float(curve.threshold.iloc[curve.cost.argmin()])
     test_proba = model.predict_proba(X_test)[:, 1]
     bayes_threshold = COST_FP / (COST_FP + COST_FN)
     policies = (("baseline", 0.5), ("bayes", bayes_threshold), ("validation_tuned", threshold))
@@ -21,14 +16,11 @@ def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):
     for split, labels, proba in (
         ("validation", y_validation, validation_proba), ("test", y_test, test_proba)
     ):
-        proba = np.asarray(proba, dtype=float)
         for policy, cutoff in policies:
             metrics = evaluate(labels, proba, cutoff)
-            tn, fp, fn, tp = confusion(labels, proba >= cutoff)
             rows.append({
-                "split": split, "policy": policy, "threshold": cutoff,
-                **metrics, "tn": tn, "fp": fp, "fn": fn, "tp": tp,
-                "total_cost": float(COST_FP * fp + COST_FN * fn),
+                "split": split, "policy": policy, "threshold": cutoff, **metrics,
+                "total_cost": COST_FP * metrics["fp"] + COST_FN * metrics["fn"],
                 "mean_cost": metrics["expected_cost"],
             })
     return {

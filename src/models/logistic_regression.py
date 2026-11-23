@@ -4,7 +4,7 @@ import numpy as np
 from src.base import BaseClassifier
 
 
-from src.validation import (finite_scalar, positive_int, random_seed, sample_weights,
+from src.base import (finite_scalar, positive_int, random_seed, sample_weights,
                             binary_data, prediction_data, sigmoid)
 
 
@@ -140,13 +140,6 @@ def make_optimizer(name, learning_rate=0.1, beta1=0.9, beta2=0.999, epsilon=1e-8
 
 
 class LogisticRegressionScratch(BaseClassifier):
-
-
-
-
-
-
-
     sigmoid = staticmethod(sigmoid)
     binary_cross_entropy = staticmethod(binary_cross_entropy)
     _finite_scalar = staticmethod(finite_scalar)

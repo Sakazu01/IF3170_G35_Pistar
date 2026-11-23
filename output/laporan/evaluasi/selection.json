@@ -6,18 +6,21 @@
   "selection_rule": "3-fold screening; 5-fold mean score at 0.5; OOF coarse/fine threshold",
   "selected": {
     "Tree": {
-      "name": "Ablation raw",
+      "name": "Tree smoothing0.5",
       "family": "Tree",
       "params": {
-        "criterion": "gain_ratio",
-        "max_depth": 15,
-        "min_samples_leaf": 5
+        "criterion": "gini",
+        "max_depth": 12,
+        "min_samples_leaf": 5,
+        "leaf_smoothing": 0.5
       },
-      "view": "tree_imputed",
-      "groups": [],
+      "view": "tree",
+      "groups": [
+        "basic"
+      ],
       "balanced": false,
       "max_train": null,
-      "ccp_alpha": 0.0005,
+      "ccp_alpha": 0.0,
       "select_k": null
     },
     "KNN": {
@@ -92,22 +95,25 @@
     }
   },
   "final": {
-    "name": "Ablation raw",
+    "name": "Tree smoothing0.5",
     "family": "Tree",
     "params": {
-      "criterion": "gain_ratio",
-      "max_depth": 15,
-      "min_samples_leaf": 5
+      "criterion": "gini",
+      "max_depth": 12,
+      "min_samples_leaf": 5,
+      "leaf_smoothing": 0.5
     },
-    "view": "tree_imputed",
-    "groups": [],
+    "view": "tree",
+    "groups": [
+      "basic"
+    ],
     "balanced": false,
     "max_train": null,
-    "ccp_alpha": 0.0005,
+    "ccp_alpha": 0.0,
     "select_k": null
   },
-  "threshold": 0.47,
-  "n_development": 21896,
+  "threshold": 0.43,
+  "n_development": 21899,
   "screening_candidates": 102,
   "confirmation_candidates": 17,
   "holdout_previously_observed": true

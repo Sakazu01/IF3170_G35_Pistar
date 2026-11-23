@@ -5,7 +5,7 @@ import pandas as pd
 
 from src.evaluation import evaluate
 from src.models.decision_tree import DecisionTree
-from src.validation import finite_scalar, positive_int
+from src.base import finite_scalar, positive_int
 
 
 def _preorder(root):
