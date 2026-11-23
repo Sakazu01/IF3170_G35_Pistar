@@ -12,7 +12,7 @@ Taruh `train.csv`, `test.csv`, `sample_submission.csv` dari Kaggle di folder `da
 
 ## Run
 
-Buka `notebooks/Pistar.ipynb`, Run All. Hasilnya ada di `output/submission.csv`.
+Buka `notebooks/main.ipynb`, Run All. Hasilnya ada di `output/submission.csv`.
 
 ## Pembagian tugas
 

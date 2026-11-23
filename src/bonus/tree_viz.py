@@ -8,17 +8,25 @@ def _count(node):
 def _branch_label(node, i, names, levels):
     if node.categories is None:
         return f"<= {node.threshold:.4g}" if i == 0 else f"> {node.threshold:.4g}"
+    if getattr(node, 'category_left', None) is not None:
+        levels_for_feature = levels.get(names[node.feature], [])
+        labels = [str(levels_for_feature[int(code)]) if 0 <= int(code) < len(levels_for_feature) else str(code)
+                  for code in node.category_left]
+        return ('in ' if i == 0 else 'not in ') + '{' + ', '.join(labels) + '}'
     code = int(node.categories[i])
     level_names = levels.get(names[node.feature], [])
     return str(level_names[code]) if 0 <= code < len(level_names) else str(code)
 
 
 def plot_tree(model, top_n=3, feature_names=None, category_levels=None, path=None):
-    if int(top_n) < 0:
-        raise ValueError("top_n must be nonnegative")
+    import numbers
+    if isinstance(top_n, bool) or not isinstance(top_n, numbers.Integral) or top_n < 0:
+        raise ValueError("top_n must be a nonnegative integer")
     names = list(feature_names) if feature_names is not None else [
         f"x{j}" for j in range(model.n_features_in_)
     ]
+    if len(names) != model.n_features_in_:
+        raise ValueError('feature_names must match model features')
     levels = category_levels or {}
     boxes, edges, next_leaf = [], [], [0]
 
@@ -56,7 +64,8 @@ def plot_tree(model, top_n=3, feature_names=None, category_levels=None, path=Non
     ax.set_ylim(-depth - 0.6, 0.6)
     ax.axis("off")
     fig.colorbar(plt.cm.ScalarMappable(cmap=cmap), ax=ax, fraction=0.02, label="P(is_canceled=1)")
-    ax.set_title(f"DecisionTree C4.5, {top_n} tingkat teratas ({_count(model.tree_) + 1} simpul total)")
+    variant = {'gain_ratio': 'C4.5', 'entropy': 'entropy', 'gini': 'Gini'}[model.criterion]
+    ax.set_title(f"DecisionTree {variant}, {top_n} tingkat teratas ({_count(model.tree_) + 1} simpul total)")
     fig.tight_layout()
     if path is not None:
         fig.savefig(path, dpi=150, bbox_inches="tight")

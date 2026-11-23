@@ -1,0 +1,255 @@
+{
+  "threshold": 0.43,
+  "configuration": {
+    "name": "Tree smoothing0.5",
+    "family": "Tree",
+    "params": {
+      "criterion": "gini",
+      "max_depth": 12,
+      "min_samples_leaf": 5,
+      "leaf_smoothing": 0.5
+    },
+    "view": "tree",
+    "groups": [
+      "basic"
+    ],
+    "balanced": false,
+    "max_train": null,
+    "ccp_alpha": 0.0,
+    "select_k": null
+  },
+  "metadata": {
+    "seed": 42,
+    "metric": "macro_f1",
+    "kaggle_metric_verified": false,
+    "input_sha256": {
+      "train.csv": "2773be159fee45aac59b32354949d00af0badbc37c45420d5ab5dc676bbcc7ed",
+      "test.csv": "aa59d8ddeb73efea1887eb8c7611d848dff332bc4ade7258c3408cec07050610",
+      "sample_submission.csv": "be2885697720fa1c645a422510a9ca2e81f6e14cb54b6dfd8760d5c3960e1c1b"
+    },
+    "source_sha256": {
+      "src\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "src\\base.py": "d57a3bc9cd3a607af8cd805d9d3aaca8d8d8baf13574443490d3d528d74b5ac3",
+      "src\\bonus\\__init__.py": "ba95d48a5d5586f25c42facb5f74eadb9509ee621bc4780ebf83d149dca6419d",
+      "src\\bonus\\cost_sensitive.py": "e322b5ec9c9f9d4481ce5f958b049ec63716257f15f8a787bda6d08ea8f931c9",
+      "src\\bonus\\logreg_optimization.py": "64cb53c0041310896ebd3732a78e17b5836d60a97c365dad90fe43ae9243d717",
+      "src\\bonus\\logreg_video.py": "40461ca2411ae88c8b80b72c6da4b3748ee79992a8457fa71f5bc1728fbfb0c7",
+      "src\\bonus\\naive_bayes_graph.py": "be90a6b0d50073f30be3ac1dc7ece2be472fb0e3843651111b99e5ef481de860",
+      "src\\bonus\\svm_plot.py": "1d772bb8b01f19d69a8024ce117f8e3d64b8a3aec7c272a37f28217897fcb1f5",
+      "src\\bonus\\tree_prune.py": "7f9055383c4543e5e62db34f3993cf38d8fa787f20772d49636bf452501f17b2",
+      "src\\bonus\\tree_viz.py": "a5fc1c44e5a4dc06addc79cc588a610d8526032b59392ebf8caacec4faea6fe0",
+      "src\\evaluation.py": "f49b06bb423b8001bd3bff4543e4f2fa8b67cc3b02f3e37ccdf82b4f38e5a81e",
+      "src\\models\\__init__.py": "f70e73c7ce0de5e3a077c4300a9fb11d0a563b2d0af10db2617a39fc203b1189",
+      "src\\models\\decision_tree.py": "09687b4e082c03b573ba969f38c30d38f5641ea218c32ab5c13a5a25e8af77cc",
+      "src\\models\\knn.py": "441ea2bcc317ae3ccc05b21560360755646d81d21896530186f17fbb440e2b55",
+      "src\\models\\logistic_regression.py": "1e5be7fb12c5b786bcc66c4baec04159d51d1e1fd5de9bebb2b07eadca707322",
+      "src\\models\\naive_bayes.py": "73b6f0305df71b6176987bce0ed284ba7579f0291dc53b816d08e0487e205b0b",
+      "src\\models\\svm.py": "9655af9fabe523d28cfbc1f687defc4472411b064150e74d7c30d49fef0cde0c"
+    },
+    "python": "3.12.6",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "sklearn": "1.9.0",
+    "selection": {
+      "metric": "macro_f1",
+      "kaggle_metric_verified": false,
+      "seed": 42,
+      "folds": 5,
+      "selection_rule": "3-fold screening; 5-fold mean score at 0.5; OOF coarse/fine threshold",
+      "selected": {
+        "Tree": {
+          "name": "Tree smoothing0.5",
+          "family": "Tree",
+          "params": {
+            "criterion": "gini",
+            "max_depth": 12,
+            "min_samples_leaf": 5,
+            "leaf_smoothing": 0.5
+          },
+          "view": "tree",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "KNN": {
+          "name": "KNN full k31 distance",
+          "family": "KNN",
+          "params": {
+            "k": 31,
+            "weighted": true
+          },
+          "view": "matrix",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "Logistic": {
+          "name": "LR full interactions",
+          "family": "Logistic",
+          "params": {
+            "optimizer": "adam",
+            "learning_rate": 0.03,
+            "max_iter": 1000,
+            "penalty": "elasticnet",
+            "reg_strength": 0.001
+          },
+          "view": "matrix",
+          "groups": [
+            "basic",
+            "stay",
+            "history",
+            "price",
+            "interactions"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "SVM": {
+          "name": "SVM RBF 3000 calibrated",
+          "family": "SVM",
+          "params": {
+            "kernel": "rbf",
+            "C": 3.0,
+            "max_iter": 300,
+            "calibration_fraction": 0.15
+          },
+          "view": "matrix",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": 3000,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        },
+        "Bayes": {
+          "name": "Bayes baseline raw scale",
+          "family": "Bayes",
+          "params": {},
+          "view": "tree",
+          "groups": [
+            "basic"
+          ],
+          "balanced": false,
+          "max_train": null,
+          "ccp_alpha": 0.0,
+          "select_k": null
+        }
+      },
+      "final": {
+        "name": "Tree smoothing0.5",
+        "family": "Tree",
+        "params": {
+          "criterion": "gini",
+          "max_depth": 12,
+          "min_samples_leaf": 5,
+          "leaf_smoothing": 0.5
+        },
+        "view": "tree",
+        "groups": [
+          "basic"
+        ],
+        "balanced": false,
+        "max_train": null,
+        "ccp_alpha": 0.0,
+        "select_k": null
+      },
+      "threshold": 0.43,
+      "n_development": 21899,
+      "screening_candidates": 102,
+      "confirmation_candidates": 17,
+      "holdout_previously_observed": true
+    },
+    "cv": {
+      "candidate": "Tree smoothing0.5",
+      "family": "Tree",
+      "macro_f1_mean": 0.8227213884177977,
+      "macro_f1_std": 0.004352863458158656,
+      "accuracy_mean": 0.8487146248365663,
+      "accuracy_std": 0.0031122520788040738,
+      "roc_auc_mean": 0.9080787911996042,
+      "fit_time_mean": 0.9589590800005681,
+      "roc_auc_std": 0.005539718252934941,
+      "f1_positive_mean": 0.7548611605398481,
+      "f1_positive_std": 0.007313224189510681,
+      "threshold_oof": 0.43,
+      "oof_macro_f1_tuned": 0.8257789394360774,
+      "oof_accuracy_tuned": 0.8471619708662496,
+      "train_accuracy_mean": 0.8793894186332022,
+      "train_macro_f1_mean": 0.858552378697512,
+      "configuration": "{\"balanced\": false, \"ccp_alpha\": 0.0, \"family\": \"Tree\", \"groups\": [\"basic\"], \"max_train\": null, \"name\": \"Tree smoothing0.5\", \"params\": {\"criterion\": \"gini\", \"leaf_smoothing\": 0.5, \"max_depth\": 12, \"min_samples_leaf\": 5}, \"select_k\": null, \"view\": \"tree\"}"
+    },
+    "holdout": [
+      {
+        "family": "Tree",
+        "phase": "optimized",
+        "threshold_kind": "oof",
+        "threshold": 0.43,
+        "candidate": "Tree smoothing0.5",
+        "accuracy": 0.850748995250274,
+        "precision_positive": 0.7777146105741899,
+        "recall_positive": 0.7625418060200669,
+        "f1_positive": 0.7700534759358288,
+        "macro_f1": 0.8297867109226136,
+        "precision": 0.7777146105741899,
+        "recall": 0.7625418060200669,
+        "f1": 0.7700534759358288,
+        "tn": 3289,
+        "fp": 391,
+        "fn": 426,
+        "tp": 1368,
+        "roc_auc": 0.9122719602782221,
+        "pr_auc": 0.8564012259688264,
+        "expected_cost": 0.2206795761782974,
+        "preprocess_time": 0.13567309999962163,
+        "fit_time": 0.9071908000005351,
+        "n_train": 21899,
+        "n_core_train": 21899,
+        "converged": null,
+        "training_matrix_mb": 3.341522216796875,
+        "estimated_kernel_peak_mb": null,
+        "predict_time": 0.03600400000141235,
+        "train_accuracy": 0.8783049454312982,
+        "train_precision_positive": 0.822419216471261,
+        "train_recall_positive": 0.8016724738675958,
+        "train_f1_positive": 0.8119133319218012,
+        "train_macro_f1": 0.8609838352882488,
+        "train_precision": 0.822419216471261,
+        "train_recall": 0.8016724738675958,
+        "train_f1": 0.8119133319218012,
+        "train_tn": 13482,
+        "train_fp": 1242,
+        "train_fn": 1423,
+        "train_tp": 5752,
+        "train_roc_auc": 0.9467212978975754,
+        "train_pr_auc": 0.9081302273062583,
+        "train_expected_cost": 0.1784099730581305
+      }
+    ]
+  },
+  "timing": {
+    "preprocess_time": 0.14325060000010126,
+    "fit_time": 1.0605212999998912,
+    "n_train": 27373,
+    "n_core_train": 27373,
+    "converged": null,
+    "training_matrix_mb": 4.176788330078125,
+    "estimated_kernel_peak_mb": null
+  },
+  "sha256": "034c68355f0c294d56f79719a4b2de5a69cb454fb5744795ea5aa54353f6eb63",
+  "n_train": 27373,
+  "n_test": 6844,
+  "model_class": "DecisionTree",
+  "serialization_identical": true,
+  "kaggle_uploaded": false
+}
