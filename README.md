@@ -18,8 +18,8 @@ Buka `notebooks/main.ipynb`, Run All. Hasilnya ada di `output/submission.csv`.
 
 | Nama | NIM | Tugas |
 |------|-----|-------|
-| Ariel Cornelius Sitorus | 13524085 |  |
-| Rava Khoman Tuah Saragih | 13524107 |  |
-| Natanael I Manurung | 13524021 |  |
-| Mahatma Brahmana | 13524015 |  |
-| Raynard Fausta | 13524052 |  |
+| Ariel Cornelius Sitorus | 13524085 | Naive Bayes, graf kelas-fitur, serta integrasi model, bonus, dan notebook. |
+| Rava Khoman Tuah Saragih | 13524107 | Decision Tree C4.5, penanganan kategori/missing, visualisasi top-N, dan pruning. |
+| Natanael Imandatua Manurung | 13524021 | Data, cleaning, preprocessing, feature engineering, KNN, dan submission Kaggle. |
+| Rainaldi Pratama Sembiring | 13524117 | SVM/SMO, kernel Linear/Polynomial/Gaussian, kalibrasi, serta visualisasi margin dan support vector. |
+| Raynard Fausta | 13524052 | Logistic Regression, L1/L2/Elastic Net, evaluation.py, optimizer, dan animasi log-loss. |
