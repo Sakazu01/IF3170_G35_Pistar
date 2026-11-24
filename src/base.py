@@ -4,7 +4,6 @@ from pathlib import Path
 import numpy as np
 
 
-# Pemeriksaan masukan yang dipakai bersama oleh kelima model from scratch.
 def finite_scalar(value, name, positive=False):
     value = float(value)
     if not np.isfinite(value) or (value <= 0 if positive else value < 0):
@@ -59,7 +58,6 @@ def prediction_data(X, n_features, allow_nan=False):
 
 
 def sigmoid(z):
-    # Dihitung terpisah untuk z positif dan negatif agar exp tidak overflow.
     z = np.asarray(z, dtype=float)
     result = np.empty_like(z)
     positive = z >= 0
@@ -70,7 +68,6 @@ def sigmoid(z):
 
 
 class BaseClassifier:
-    """Induk kelima model: prediksi label, akurasi, parameter, serta simpan dan muat model."""
 
     def predict(self, X, threshold=0.5):
         threshold = float(threshold)

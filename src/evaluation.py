@@ -1,13 +1,8 @@
-"""Metrik evaluasi untuk klasifikasi biner (0 = tidak batal, 1 = batal).
-
-Evaluasi bukan bagian yang wajib dibuat from scratch, jadi semua metrik memakai scikit-learn.
-"""
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (accuracy_score, auc, confusion_matrix, f1_score, precision_recall_curve,
                              precision_score, recall_score, roc_auc_score)
 
-# Analisis cost-sensitive: false positive (booking dikira batal) dua kali lebih mahal dari false negative.
 COST_FP = 2.0
 COST_FN = 1.0
 
@@ -18,7 +13,6 @@ def confusion_counts(y, pred):
 
 
 def pr_auc(y, proba):
-    # Luas di bawah kurva precision-recall dengan aturan trapesium, bukan average precision.
     precision, recall, _ = precision_recall_curve(y, proba)
     return float(auc(recall, precision))
 
@@ -45,11 +39,6 @@ def evaluate(y, proba, threshold=0.5):
 
 
 def threshold_curve(y, proba, thresholds=None):
-    """Confusion matrix dan metrik untuk banyak threshold sekaligus.
-
-    Tanpa `thresholds`, semua titik potong yang mungkin dicoba: setiap peluang unik, 0, 0.5,
-    dan satu nilai tepat di atas peluang terbesar (semua booking diprediksi tidak batal).
-    """
     y = np.asarray(y, dtype=int)
     proba = np.asarray(proba, dtype=float)
     if thresholds is None:

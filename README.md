@@ -14,6 +14,12 @@ Taruh `train.csv`, `test.csv`, `sample_submission.csv` dari Kaggle di folder `da
 
 Buka `notebooks/main.ipynb`, Run All. Hasilnya ada di `output/submission.csv`.
 
+## Model Pilihan Dan Hasil
+
+Model final adalah **KNN from scratch** dengan `k=11`, jarak **Manhattan**, bobot **invers jarak**, dan threshold `0.49`. Model menggunakan fitur dasar dan tanggal, target encoding, serta bobot mutual information (MI). KNN dipilih karena memperoleh mean **Macro F1 tertinggi pada konfirmasi 5-fold CV development, yaitu 0.8383**, di antara kandidat yang diuji. Threshold dipilih dari prediksi out-of-fold (OOF) development.
+
+Skor Kaggle yang diperoleh adalah **0.84092**.
+
 ## Pembagian tugas
 
 | Nama | NIM | Tugas |

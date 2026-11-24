@@ -5,7 +5,6 @@ from src.evaluation import COST_FN, COST_FP, evaluate, threshold_curve
 
 
 def cost_sensitive_analysis(model, X_validation, y_validation, X_test, y_test):
-    """Bandingkan threshold 0.5, threshold Bayes 2/3, dan threshold termurah di data validasi."""
     validation_proba = model.predict_proba(X_validation)[:, 1]
     curve = threshold_curve(y_validation, validation_proba)
     threshold = float(curve.threshold.iloc[curve.cost.argmin()])
