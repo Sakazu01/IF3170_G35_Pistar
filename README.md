@@ -1,18 +1,46 @@
 # IF3170_G35_Pistar
 
-Tubes 2 IF3170 Inteligensi Artifisial: prediksi pembatalan booking hotel (`is_canceled`) pakai KNN, Decision Tree, Logistic Regression, SVM, dan Naive Bayes 
+Tugas Besar 2 IF3170 Inteligensi Artifisial: memprediksi apakah sebuah booking penginapan dibatalkan (`is_canceled`). Lima algoritma diimplementasikan from scratch dengan NumPy (KNN, Decision Tree, Logistic Regression, SVM, dan Naive Bayes), lalu dibandingkan dengan scikit-learn. Metrik kompetisi Kaggle adalah Macro F1.
+
+Model final yang dipakai untuk submission adalah KNN from scratch (jarak Manhattan, k = 11) dengan target encoding yang dihitung di dalam data training dan bobot kolom dari mutual information.
+
+## Struktur repository
+
+```
+src/
+  base.py            kelas induk model dan pemeriksaan masukan
+  evaluation.py      metrik evaluasi
+  models/            KNN, DecisionTree, LogisticRegression, SVM, NaiveBayes from scratch
+  bonus/             pruning dan visualisasi pohon, perbandingan optimizer, video log-loss,
+                     plot kernel SVM, graf Naive Bayes, analisis cost-sensitive
+notebooks/main.ipynb alur lengkap: pemahaman data, preprocessing, eksperimen, tuning,
+                     perbandingan dengan scikit-learn, dan submission Kaggle
+output/              hasil run: submission.csv, gambar, tabel, dan animasi
+docs/                laporan (PDF)
+data/                tempat dataset Kaggle (tidak di-commit)
+```
 
 ## Setup
 
+Butuh Python 3.12. Versi library dikunci di `requirements.txt` agar hasil run sama persis dengan submisi Kaggle.
+
 ```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows; di Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Taruh `train.csv`, `test.csv`, `sample_submission.csv` dari Kaggle di folder `data/` (nggak di-commit).
+Unduh `train.csv`, `test.csv`, dan `sample_submission.csv` dari halaman kompetisi Kaggle, lalu taruh di folder `data/`.
 
-## Run
+## Menjalankan program
 
-Buka `notebooks/main.ipynb`, Run All. Hasilnya ada di `output/submission.csv`.
+Buka `notebooks/main.ipynb` di Jupyter, lalu jalankan semua sel (Run All). Bisa juga lewat terminal dari folder utama:
+
+```bash
+python -m jupyter nbconvert --to notebook --execute --inplace notebooks/main.ipynb
+```
+
+Satu run penuh memakan waktu sekitar 30 menit karena tuning mencoba banyak konfigurasi dengan cross-validation. Hasil utamanya adalah `output/submission.csv`. Seed dikunci di 42 dan perhitungan dibatasi satu thread, sehingga setiap run menghasilkan submission yang sama.
 
 ## Model Pilihan Dan Hasil
 
@@ -22,10 +50,10 @@ Skor Kaggle yang diperoleh adalah **0.84092**.
 
 ## Pembagian tugas
 
-| Nama | NIM | Tugas |
-|------|-----|-------|
-| Ariel Cornelius Sitorus | 13524085 | Naive Bayes, graf kelas-fitur, serta integrasi model, bonus, dan notebook. |
-| Rava Khoman Tuah Saragih | 13524107 | Decision Tree C4.5, penanganan kategori/missing, visualisasi top-N, dan pruning. |
-| Natanael Imandatua Manurung | 13524021 | Data, cleaning, preprocessing, feature engineering, KNN, dan submission Kaggle. |
-| Rainaldi Pratama Sembiring | 13524117 | SVM/SMO, kernel Linear/Polynomial/Gaussian, kalibrasi, serta visualisasi margin dan support vector. |
-| Raynard Fausta | 13524052 | Logistic Regression, L1/L2/Elastic Net, evaluation.py, optimizer, dan animasi log-loss. |
+| NIM | Nama | Tanggung jawab |
+|-----|------|----------------|
+| 13524021 | Natanael Imandatua Manurung | Pengolahan data, cleaning, preprocessing, feature engineering, KNN, dan pembuatan submission Kaggle. |
+| 13524107 | Rava Khoman Tuah Saragih | Decision Tree C4.5, penanganan kategori/missing, visualisasi pohon top-N, dan pruning. |
+| 13524052 | Raynard Fausta | Logistic Regression, regularisasi L1/L2/Elastic Net, evaluation.py, perbandingan optimizer, dan animasi log-loss. |
+| 13524117 | Rainaldi Pratama Sembiring | SVM dengan SMO, kernel Linear/Polynomial/Gaussian, kalibrasi, serta visualisasi margin dan support vector. |
+| 13524085 | Ariel Cornelius Sitorus | Naive Bayes, graf hubungan kelas-fitur, serta integrasi model, bonus, dan notebook. |
